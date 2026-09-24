@@ -1,0 +1,611 @@
+
+    /* Ses açık: dalgalar görünür, çarpı gizlenir */
+    #soundControl[data-state="on"] #soundCross {
+        display: none !important;
+    }
+
+    #soundControl[data-state="on"] #soundWaves {
+        display: inline !important;
+    }
+
+    /* Ses kapalı veya henüz başlamamış: çarpı görünür */
+    #soundControl:not([data-state="on"]) #soundCross {
+        display: inline !important;
+    }
+
+    #soundControl:not([data-state="on"]) #soundWaves {
+        display: none !important;
+    }
+
+
+    /* DERDO İSTANBUL — buz mavisi neon */
+    .overlay-text h1 {
+        color: #efffff;
+        text-shadow:
+            0 0 4px #ffffff,
+            0 0 12px #9cefff,
+            0 0 26px #35cfff,
+            0 0 52px rgba(0, 174, 255, 0.8),
+            0 0 90px rgba(0, 140, 255, 0.5);
+    }
+
+    .social-btn {
+        transition:
+            transform 0.25s ease,
+            background 0.25s ease,
+            border-color 0.25s ease,
+            box-shadow 0.25s ease,
+            text-shadow 0.25s ease;
+    }
+
+    /* Instagram — pembe neon */
+    .social-btn[href*="instagram.com"]:hover,
+    .social-btn[href*="instagram.com"]:focus-visible {
+        background: rgba(225, 48, 108, 0.28);
+        border-color: #ff79bd;
+        box-shadow:
+            0 0 15px rgba(255, 70, 160, 0.65),
+            0 0 36px rgba(255, 70, 160, 0.35),
+            inset 0 0 14px rgba(255, 70, 160, 0.15);
+        text-shadow: 0 0 9px #ff79bd;
+        transform: translateY(-3px);
+    }
+
+    /* YouTube — kırmızı neon */
+    .social-btn[href*="youtube.com"]:hover,
+    .social-btn[href*="youtube.com"]:focus-visible {
+        background: rgba(255, 35, 35, 0.25);
+        border-color: #ff6868;
+        box-shadow:
+            0 0 15px rgba(255, 45, 45, 0.65),
+            0 0 36px rgba(255, 45, 45, 0.35),
+            inset 0 0 14px rgba(255, 45, 45, 0.15);
+        text-shadow: 0 0 9px #ff6868;
+        transform: translateY(-3px);
+    }
+
+
+    .overlay-text h1 {
+        position: relative;
+        isolation: isolate;
+        color: #65dcff;
+        -webkit-text-fill-color: #65dcff;
+        background: none;
+        animation: neon-breath 2.8s ease-in-out infinite;
+    }
+
+    /* Yazının üzerinden soldan sağa geçen parlak katman */
+    .overlay-text h1::after {
+        content: "DERDO İSTANBUL";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        color: #ffffff;
+        -webkit-text-fill-color: #ffffff;
+        text-shadow:
+            0 0 5px #ffffff,
+            0 0 12px #ffffff,
+            0 0 25px #8eeaff,
+            0 0 45px #00bfff;
+
+        clip-path: polygon(
+            -35% -100%, -10% -100%,
+            -25% 200%, -50% 200%
+        );
+        animation: neon-sweep 3.2s ease-in-out infinite;
+    }
+
+    /* Belirgin nefes efekti */
+    @keyframes neon-breath {
+        0%, 100% {
+            color: #59b6d5;
+            -webkit-text-fill-color: #59b6d5;
+            text-shadow:
+                0 0 3px rgba(90, 210, 255, 0.6),
+                0 0 10px rgba(0, 160, 255, 0.35);
+        }
+
+        50% {
+            color: #eaffff;
+            -webkit-text-fill-color: #eaffff;
+            text-shadow:
+                0 0 6px #ffffff,
+                0 0 16px #a5f3ff,
+                0 0 32px #36d9ff,
+                0 0 65px #00aeff,
+                0 0 100px rgba(0, 153, 255, 0.85);
+        }
+    }
+
+    /* Geniş ve parlak ışık şeridi */
+    @keyframes neon-sweep {
+        0%, 12% {
+            clip-path: polygon(
+                -35% -100%, -10% -100%,
+                -25% 200%, -50% 200%
+            );
+        }
+
+        78%, 100% {
+            clip-path: polygon(
+                150% -100%, 175% -100%,
+                160% 200%, 135% 200%
+            );
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .overlay-text h1 {
+            animation: none;
+        }
+
+        .overlay-text h1::after {
+            display: none;
+        }
+    }
+
+
+    .social-buttons {
+        position: relative;
+    }
+
+    .social-buttons::after {
+        content: "Nasuh Türkmen";
+        position: absolute;
+        top: calc(100% + 20px);
+        left: 0;
+        width: 100%;
+        text-align: center;
+        color: #e2f5ff;
+        font-size: 17px;
+        font-weight: 400;
+        letter-spacing: 3px;
+        text-shadow: 0 0 12px rgba(100, 210, 255, 0.5);
+        pointer-events: none;
+    }
+
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d0d0d;
+        }
+
+        .bg-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            background-image:
+                linear-gradient(
+                    rgba(0, 0, 0, 0.3),
+                    rgba(0, 0, 0, 0.6)
+                ),
+                url("https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=1920&auto=format&fit=crop");
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .overlay-text {
+            color: #fff;
+            text-align: center;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+        }
+
+        .overlay-text h1 {
+            font-size: 3.5rem;
+            font-weight: 300;
+            text-transform: uppercase;
+        }
+
+        .social-buttons {
+            display: flex;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            color: #fff;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background 0.3s, transform 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .social-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        /* Sol alt ses kontrolü */
+        .sound-control {
+            position: fixed;
+            left: max(20px, env(safe-area-inset-left));
+            bottom: max(20px, env(safe-area-inset-bottom));
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sound-button {
+            position: relative;
+            display: grid;
+            place-items: center;
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            border: 1px solid currentColor;
+            background: rgba(15, 15, 15, 0.8);
+            backdrop-filter: blur(10px);
+            color: #f4c66a;
+            cursor: pointer;
+            transition: color 0.25s, box-shadow 0.25s, transform 0.2s;
+        }
+
+        .sound-button:hover {
+            transform: scale(1.07);
+        }
+
+        .sound-button:active {
+            transform: scale(0.94);
+        }
+
+        .sound-button:focus-visible {
+            outline: 2px solid white;
+            outline-offset: 5px;
+        }
+
+        .sound-button svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .sound-control[data-state="on"] .sound-button {
+            color: #73f5b0;
+            box-shadow: 0 0 20px rgba(115, 245, 176, 0.25);
+        }
+
+        .sound-control[data-state="on"] .sound-button::after {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border: 1px solid #73f5b0;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sound-pulse 1.8s ease-out infinite;
+        }
+
+        .sound-control[data-state="off"] .sound-button,
+        .sound-control[data-state="error"] .sound-button {
+            color: #ff8585;
+            box-shadow: 0 0 15px rgba(255, 133, 133, 0.15);
+        }
+
+        .sound-label {
+            padding: 8px 12px;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.65);
+            color: #fff;
+            font-size: 12px;
+            backdrop-filter: blur(8px);
+        }
+
+        .sound-toast {
+            position: fixed;
+            left: 20px;
+            bottom: calc(max(20px, env(safe-area-inset-bottom)) + 70px);
+            z-index: 101;
+            max-width: calc(100vw - 40px);
+            padding: 12px 16px;
+            color: #fff;
+            background: rgba(10, 10, 10, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            backdrop-filter: blur(10px);
+            font-size: 13px;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.25s, transform 0.25s;
+            pointer-events: none;
+        }
+
+        .sound-toast.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        @keyframes sound-pulse {
+            from {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            to {
+                transform: scale(1.45);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .overlay-text h1 {
+                font-size: clamp(2rem, 8vw, 3.5rem);
+            }
+
+            .social-buttons {
+                gap: 12px;
+            }
+
+            .social-btn {
+                padding: 12px 18px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    
+
+    /* Arka plan biraz daha karanlık */
+    .bg-container::before {
+        background: rgba(0, 0, 0, 0.38);
+    }
+
+    /* Aydınlanmanın üzerinde çok hafif sıcak ışık */
+    .bg-container::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.45s ease;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .bg-container.spotlight-active::before {
+            background: radial-gradient(
+                circle 310px at var(--mouse-x) var(--mouse-y),
+                rgba(0, 0, 0, 0) 0%,
+                rgba(0, 0, 0, 0.01) 12%,
+                rgba(0, 0, 0, 0.05) 28%,
+                rgba(0, 0, 0, 0.14) 46%,
+                rgba(0, 0, 0, 0.26) 65%,
+                rgba(0, 0, 0, 0.35) 84%,
+                rgba(0, 0, 0, 0.38) 100%
+            );
+        }
+
+        .bg-container.spotlight-active::after {
+            opacity: 1;
+            background:
+                radial-gradient(
+                    circle 130px at var(--mouse-x) var(--mouse-y),
+                    rgba(255, 240, 205, 0.12) 0%,
+                    rgba(255, 225, 165, 0.05) 40%,
+                    transparent 100%
+                ),
+                radial-gradient(
+                    circle 340px at var(--mouse-x) var(--mouse-y),
+                    rgba(255, 218, 155, 0.04) 0%,
+                    transparent 75%
+                );
+            mix-blend-mode: screen;
+        }
+    }
+
+
+    /* Karartma katmanı: yazıların ve butonların altında kalır. */
+    .bg-container {
+        isolation: isolate;
+        --mouse-x: 50%;
+        --mouse-y: 50%;
+    }
+
+    .bg-container::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background: rgba(0, 0, 0, 0.22);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .bg-container.spotlight-active::before {
+            background: radial-gradient(
+                circle 220px at var(--mouse-x) var(--mouse-y),
+                transparent 0%,
+                rgba(0, 0, 0, 0.04) 30%,
+                rgba(0, 0, 0, 0.22) 100%
+            );
+        }
+
+        html.star-cursor-active,
+        html.star-cursor-active * {
+            cursor: none !important;
+        }
+    }
+
+    #starCursor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 36px;
+        height: 36px;
+        margin: -18px 0 0 -18px;
+        z-index: 10001;
+        pointer-events: none;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        border: 1px solid rgba(255, 235, 185, 0.65);
+        border-radius: 50%;
+        box-shadow: 0 0 14px rgba(255, 220, 140, 0.18);
+    }
+
+    #starCursor svg {
+        width: 23px;
+        height: 23px;
+        fill: #fff3cb;
+        filter: drop-shadow(0 0 5px #ffc76a);
+    }
+
+    #starTrail {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        pointer-events: none;
+    }
+
+
+    .motion-enable {
+        position: fixed;
+        right: max(16px, env(safe-area-inset-right));
+        bottom: calc(88px + env(safe-area-inset-bottom));
+        z-index: 110;
+        padding: 11px 15px;
+        border: 1px solid rgba(145, 225, 255, 0.4);
+        border-radius: 22px;
+        background: rgba(10, 20, 30, 0.8);
+        color: #dff8ff;
+        font: 12px "Segoe UI", sans-serif;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 0 20px rgba(0, 170, 255, 0.12);
+    }
+
+    .motion-enable:focus-visible {
+        outline: 2px solid #9cefff;
+        outline-offset: 4px;
+    }
+
+
+    /* Arka plan hareketini sayfanın içinde tutar. */
+    .bg-container {
+        overflow: hidden;
+        isolation: isolate;
+    }
+
+    .cinema-background {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        overflow: hidden;
+        pointer-events: none;
+        background: #0d0d0d;
+        animation: cinema-reveal 1.8s ease-out both;
+    }
+
+    .cinema-image {
+        position: absolute;
+        inset: -24px;
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+        will-change: transform;
+    }
+
+    /* Koyu görüntüden yumuşak ve ölçülü açılış */
+    @keyframes cinema-reveal {
+        from {
+            opacity: 0;
+            transform: scale(1.045);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .cinema-background {
+            animation: none;
+        }
+
+        .cinema-image {
+            will-change: auto;
+        }
+    }
+
+
+    /* Arka plan biraz daha karanlık */
+    .bg-container::before {
+        background: rgba(0, 0, 0, 0.38);
+    }
+
+    /* Aydınlanmanın üzerinde çok hafif sıcak ışık */
+    .bg-container::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.45s ease;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .bg-container.spotlight-active::before {
+            background: radial-gradient(
+                circle 310px at var(--mouse-x) var(--mouse-y),
+                rgba(0, 0, 0, 0) 0%,
+                rgba(0, 0, 0, 0.01) 12%,
+                rgba(0, 0, 0, 0.05) 28%,
+                rgba(0, 0, 0, 0.14) 46%,
+                rgba(0, 0, 0, 0.26) 65%,
+                rgba(0, 0, 0, 0.35) 84%,
+                rgba(0, 0, 0, 0.38) 100%
+            );
+        }
+
+        .bg-container.spotlight-active::after {
+            opacity: 1;
+            background:
+                radial-gradient(
+                    circle 130px at var(--mouse-x) var(--mouse-y),
+                    rgba(255, 240, 205, 0.12) 0%,
+                    rgba(255, 225, 165, 0.05) 40%,
+                    transparent 100%
+                ),
+                radial-gradient(
+                    circle 340px at var(--mouse-x) var(--mouse-y),
+                    rgba(255, 218, 155, 0.04) 0%,
+                    transparent 75%
+                );
+            mix-blend-mode: screen;
+        }
+    }
+
+.social-icon{width:20px;height:20px;flex-shrink:0}
