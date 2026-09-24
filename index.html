@@ -19,6 +19,133 @@
         display: none !important;
     }
 </style>
+<style>
+    /* DERDO İSTANBUL — buz mavisi neon */
+    .overlay-text h1 {
+        color: #efffff;
+        text-shadow:
+            0 0 4px #ffffff,
+            0 0 12px #9cefff,
+            0 0 26px #35cfff,
+            0 0 52px rgba(0, 174, 255, 0.8),
+            0 0 90px rgba(0, 140, 255, 0.5);
+    }
+
+    .social-btn {
+        transition:
+            transform 0.25s ease,
+            background 0.25s ease,
+            border-color 0.25s ease,
+            box-shadow 0.25s ease,
+            text-shadow 0.25s ease;
+    }
+
+    /* Instagram — pembe neon */
+    .social-btn[href*="instagram.com"]:hover,
+    .social-btn[href*="instagram.com"]:focus-visible {
+        background: rgba(225, 48, 108, 0.28);
+        border-color: #ff79bd;
+        box-shadow:
+            0 0 15px rgba(255, 70, 160, 0.65),
+            0 0 36px rgba(255, 70, 160, 0.35),
+            inset 0 0 14px rgba(255, 70, 160, 0.15);
+        text-shadow: 0 0 9px #ff79bd;
+        transform: translateY(-3px);
+    }
+
+    /* YouTube — kırmızı neon */
+    .social-btn[href*="youtube.com"]:hover,
+    .social-btn[href*="youtube.com"]:focus-visible {
+        background: rgba(255, 35, 35, 0.25);
+        border-color: #ff6868;
+        box-shadow:
+            0 0 15px rgba(255, 45, 45, 0.65),
+            0 0 36px rgba(255, 45, 45, 0.35),
+            inset 0 0 14px rgba(255, 45, 45, 0.15);
+        text-shadow: 0 0 9px #ff6868;
+        transform: translateY(-3px);
+    }
+</style>
+<style>
+    .overlay-text h1 {
+        position: relative;
+        isolation: isolate;
+        color: #65dcff;
+        -webkit-text-fill-color: #65dcff;
+        background: none;
+        animation: neon-breath 2.8s ease-in-out infinite;
+    }
+
+    /* Yazının üzerinden soldan sağa geçen parlak katman */
+    .overlay-text h1::after {
+        content: "DERDO İSTANBUL";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        color: #ffffff;
+        -webkit-text-fill-color: #ffffff;
+        text-shadow:
+            0 0 5px #ffffff,
+            0 0 12px #ffffff,
+            0 0 25px #8eeaff,
+            0 0 45px #00bfff;
+
+        clip-path: polygon(
+            -35% -100%, -10% -100%,
+            -25% 200%, -50% 200%
+        );
+        animation: neon-sweep 3.2s ease-in-out infinite;
+    }
+
+    /* Belirgin nefes efekti */
+    @keyframes neon-breath {
+        0%, 100% {
+            color: #59b6d5;
+            -webkit-text-fill-color: #59b6d5;
+            text-shadow:
+                0 0 3px rgba(90, 210, 255, 0.6),
+                0 0 10px rgba(0, 160, 255, 0.35);
+        }
+
+        50% {
+            color: #eaffff;
+            -webkit-text-fill-color: #eaffff;
+            text-shadow:
+                0 0 6px #ffffff,
+                0 0 16px #a5f3ff,
+                0 0 32px #36d9ff,
+                0 0 65px #00aeff,
+                0 0 100px rgba(0, 153, 255, 0.85);
+        }
+    }
+
+    /* Geniş ve parlak ışık şeridi */
+    @keyframes neon-sweep {
+        0%, 12% {
+            clip-path: polygon(
+                -35% -100%, -10% -100%,
+                -25% 200%, -50% 200%
+            );
+        }
+
+        78%, 100% {
+            clip-path: polygon(
+                150% -100%, 175% -100%,
+                160% 200%, 135% 200%
+            );
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .overlay-text h1 {
+            animation: none;
+        }
+
+        .overlay-text h1::after {
+            display: none;
+        }
+    }
+</style>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
