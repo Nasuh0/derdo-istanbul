@@ -904,4 +904,428 @@
 })();
 </script>
 </body>
+<style>
+    .motion-enable {
+        position: fixed;
+        right: max(16px, env(safe-area-inset-right));
+        bottom: calc(88px + env(safe-area-inset-bottom));
+        z-index: 110;
+        padding: 11px 15px;
+        border: 1px solid rgba(145, 225, 255, 0.4);
+        border-radius: 22px;
+        background: rgba(10, 20, 30, 0.8);
+        color: #dff8ff;
+        font: 12px "Segoe UI", sans-serif;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 0 20px rgba(0, 170, 255, 0.12);
+    }
+
+    .motion-enable:focus-visible {
+        outline: 2px solid #9cefff;
+        outline-offset: 4px;
+    }
+</style>
+
+<script>
+(() => {
+    const picture = document.querySelector(".cinema-image");
+    const mobile = matchMedia("(pointer: coarse)");
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+
+    if (
+        !picture ||
+        !mobile.matches ||
+        reducedMotion.matches ||
+        !window.DeviceOrientationEvent
+    ) return;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "motion-enable";
+    button.textContent = "Hareketi etkinleştir";
+    document.body.appendChild(button);
+
+    let baseBeta = null;
+    let baseGamma = null;
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let frame = null;
+    let lastTime = 0;
+    let listening = false;
+    let receivedData = false;
+    let timeout;
+
+    const clamp = (value, min, max) =>
+        Math.max(min, Math.min(max, value));
+
+    function animate(time) {
+        const elapsed = lastTime ? Math.min(time - lastTime, 50) : 16;
+        lastTime = time;
+
+        const smoothing = 1 - Math.exp(-elapsed / 180);
+        currentX += (targetX - currentX) * smoothing;
+        currentY += (targetY - currentY) * smoothing;
+
+        const settled =
+            Math.abs(targetX - currentX) < 0.02 &&
+            Math.abs(targetY - currentY) < 0.02;
+
+        if (settled) {
+            currentX = targetX;
+            currentY = targetY;
+        }
+
+        picture.style.transform =
+            `translate3d(${currentX.toFixed(2)}px, ${currentY.toFixed(2)}px, 0)`;
+
+        if (settled) {
+            frame = null;
+            lastTime = 0;
+        } else {
+            frame = requestAnimationFrame(animate);
+        }
+    }
+
+    function schedule() {
+        if (frame === null) frame = requestAnimationFrame(animate);
+    }
+
+    function onOrientation(event) {
+        if (
+            document.hidden ||
+            reducedMotion.matches ||
+            !mobile.matches ||
+            !Number.isFinite(event.beta) ||
+            !Number.isFinite(event.gamma)
+        ) return;
+
+        receivedData = true;
+        clearTimeout(timeout);
+        button.hidden = true;
+
+        // Telefonun ilk tutulduğu konumu merkez kabul et.
+        if (baseBeta === null) {
+            baseBeta = event.beta;
+            baseGamma = event.gamma;
+        }
+
+        const betaDifference =
+            ((event.beta - baseBeta + 540) % 360) - 180;
+
+        const gammaDifference = event.gamma - baseGamma;
+
+        const angle = (
+            window.screen.orientation?.angle ??
+            window.orientation ??
+            0
+        ) * Math.PI / 180;
+
+        // Dikey ve yatay ekran yönüne uyum sağlar.
+        const horizontal =
+            gammaDifference * Math.cos(angle) +
+            betaDifference * Math.sin(angle);
+
+        const vertical =
+            betaDifference * Math.cos(angle) -
+            gammaDifference * Math.sin(angle);
+
+        targetX = -clamp(horizontal / 18, -1, 1) * 12;
+        targetY = -clamp(vertical / 18, -1, 1) * 9;
+
+        schedule();
+    }
+
+    function reset() {
+        baseBeta = null;
+        baseGamma = null;
+        targetX = targetY = currentX = currentY = 0;
+
+        if (frame !== null) cancelAnimationFrame(frame);
+        frame = null;
+        lastTime = 0;
+
+        picture.style.transform = "translate3d(0, 0, 0)";
+    }
+
+    function listen() {
+        if (!listening) {
+            window.addEventListener(
+                "deviceorientation",
+                onOrientation,
+                { passive: true }
+            );
+            listening = true;
+        }
+
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            if (!receivedData) {
+                button.hidden = false;
+                button.disabled = false;
+                button.textContent = "Sensör alınamadı · Yeniden dene";
+            }
+        }, 5000);
+    }
+
+    button.addEventListener("click", async () => {
+        button.disabled = true;
+        button.textContent = "Sensör bekleniyor…";
+
+        try {
+            // İzin isteyen cihazlarda doğrudan kullanıcı tıklamasıyla çalışır.
+            if (typeof DeviceOrientationEvent.requestPermission === "function") {
+                const result =
+                    await DeviceOrientationEvent.requestPermission();
+
+                if (result !== "granted") {
+                    button.textContent = "Sensör izni verilmedi";
+                    button.disabled = false;
+                    return;
+                }
+            }
+
+            listen();
+        } catch (error) {
+            button.textContent = "Hareket etkinleştirilemedi";
+            button.disabled = false;
+        }
+    });
+
+    // İzin penceresi gerektirmeyen cihazlarda kendiliğinden dene.
+    if (typeof DeviceOrientationEvent.requestPermission !== "function") {
+        button.hidden = true;
+        listen();
+    }
+
+    window.addEventListener("orientationchange", reset);
+    window.screen.orientation?.addEventListener("change", reset);
+
+    document.addEventListener("visibilitychange", reset);
+
+    reducedMotion.addEventListener("change", () => {
+        reset();
+        button.hidden = reducedMotion.matches || receivedData;
+    });
+
+    mobile.addEventListener("change", () => {
+        reset();
+        button.hidden = !mobile.matches || receivedData;
+    });
+})();
+</script>
+<style>
+    /* Arka plan hareketini sayfanın içinde tutar. */
+    .bg-container {
+        overflow: hidden;
+        isolation: isolate;
+    }
+
+    .cinema-background {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        overflow: hidden;
+        pointer-events: none;
+        background: #0d0d0d;
+        animation: cinema-reveal 1.8s ease-out both;
+    }
+
+    .cinema-image {
+        position: absolute;
+        inset: -24px;
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+        will-change: transform;
+    }
+
+    /* Koyu görüntüden yumuşak ve ölçülü açılış */
+    @keyframes cinema-reveal {
+        from {
+            opacity: 0;
+            transform: scale(1.045);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .cinema-background {
+            animation: none;
+        }
+
+        .cinema-image {
+            will-change: auto;
+        }
+    }
+</style>
+
+<script>
+(() => {
+    const scene = document.querySelector(".bg-container");
+
+    // Yanlışlıkla iki kere eklenirse efekti çoğaltmaz.
+    if (!scene || scene.querySelector(".cinema-background")) return;
+
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
+    const originalBackground = getComputedStyle(scene).backgroundImage;
+
+    if (!originalBackground || originalBackground === "none") return;
+
+    const background = document.createElement("div");
+    background.className = "cinema-background";
+    background.setAttribute("aria-hidden", "true");
+
+    const picture = document.createElement("div");
+    picture.className = "cinema-image";
+    picture.style.backgroundImage = originalBackground;
+
+    background.appendChild(picture);
+    scene.prepend(background);
+
+    // Aynı İstanbul görseli artık bağımsız katmanda hareket eder.
+    scene.style.backgroundImage = "none";
+
+    /* Açılış animasyonları başlığın mevcut neonunu değiştirmez. */
+    const entranceAnimations = [];
+
+    function reveal(element, delay, distance) {
+        if (!element || reduceMotion.matches || !element.animate) return;
+
+        entranceAnimations.push(
+            element.animate(
+                [
+                    {
+                        opacity: 0,
+                        transform: `translateY(${distance}px)`
+                    },
+                    {
+                        opacity: 1,
+                        transform: "translateY(0)"
+                    }
+                ],
+                {
+                    duration: 1000,
+                    delay,
+                    easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+                    fill: "backwards"
+                }
+            )
+        );
+    }
+
+    reveal(scene.querySelector(".overlay-text"), 180, 16);
+    reveal(scene.querySelector(".social-buttons"), 380, 12);
+
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let frame = null;
+    let previousTime = 0;
+
+    function motionAllowed() {
+        return finePointer.matches && !reduceMotion.matches;
+    }
+
+    function animate(time) {
+        const elapsed = previousTime
+            ? Math.min(time - previousTime, 50)
+            : 16;
+
+        previousTime = time;
+
+        // Ekranın yenileme hızından bağımsız, yumuşak takip.
+        const smoothing = 1 - Math.exp(-elapsed / 150);
+
+        currentX += (targetX - currentX) * smoothing;
+        currentY += (targetY - currentY) * smoothing;
+
+        const settled =
+            Math.abs(targetX - currentX) < 0.02 &&
+            Math.abs(targetY - currentY) < 0.02;
+
+        if (settled) {
+            currentX = targetX;
+            currentY = targetY;
+        }
+
+        picture.style.transform =
+            `translate3d(${currentX.toFixed(2)}px, ${currentY.toFixed(2)}px, 0)`;
+
+        if (!settled) {
+            frame = requestAnimationFrame(animate);
+        } else {
+            // Fare durduğunda gereksiz animasyon çalışmaz.
+            frame = null;
+            previousTime = 0;
+        }
+    }
+
+    function schedule() {
+        if (frame === null) {
+            frame = requestAnimationFrame(animate);
+        }
+    }
+
+    scene.addEventListener("pointermove", event => {
+        if (!motionAllowed() || event.pointerType === "touch") return;
+
+        const bounds = scene.getBoundingClientRect();
+
+        const x = Math.max(
+            -1,
+            Math.min(1, ((event.clientX - bounds.left) / bounds.width) * 2 - 1)
+        );
+
+        const y = Math.max(
+            -1,
+            Math.min(1, ((event.clientY - bounds.top) / bounds.height) * 2 - 1)
+        );
+
+        // Küçük hareket: yazılar ve butonlar sabit kalır.
+        targetX = -x * 10;
+        targetY = -y * 7;
+
+        schedule();
+    }, { passive: true });
+
+    function returnToCenter() {
+        targetX = 0;
+        targetY = 0;
+        schedule();
+    }
+
+    function resetMotion() {
+        if (frame !== null) cancelAnimationFrame(frame);
+
+        frame = null;
+        previousTime = 0;
+        targetX = targetY = currentX = currentY = 0;
+        picture.style.transform = "translate3d(0, 0, 0)";
+    }
+
+    scene.addEventListener("pointerleave", returnToCenter);
+    window.addEventListener("blur", resetMotion);
+    finePointer.addEventListener("change", resetMotion);
+
+    reduceMotion.addEventListener("change", () => {
+        resetMotion();
+
+        if (reduceMotion.matches) {
+            entranceAnimations.forEach(animation => animation.cancel());
+        }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) resetMotion();
+    });
+})();
+</script>
 </html>
