@@ -15,22 +15,25 @@
             box-sizing: border-box;
         }
 
-        body, html {
+        html, body {
             height: 100%;
             width: 100%;
             overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0d0d0d;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d0d0d;
         }
 
         .bg-container {
             position: relative;
+            width: 100%;
             height: 100vh;
-            width: 100vw;
-            background-image: linear-gradient(
-                rgba(0, 0, 0, 0.3),
-                rgba(0, 0, 0, 0.6)
-            ), url('https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=1920&auto=format&fit=crop');
+            height: 100dvh;
+            background-image:
+                linear-gradient(
+                    rgba(0, 0, 0, 0.3),
+                    rgba(0, 0, 0, 0.6)
+                ),
+                url("https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=1920&auto=format&fit=crop");
             background-position: center;
             background-size: cover;
             background-repeat: no-repeat;
@@ -41,7 +44,7 @@
         }
 
         .overlay-text {
-            color: #ffffff;
+            color: #fff;
             text-align: center;
             text-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
             letter-spacing: 2px;
@@ -65,7 +68,7 @@
             align-items: center;
             gap: 10px;
             padding: 12px 24px;
-            color: #ffffff;
+            color: #fff;
             text-decoration: none;
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
@@ -73,57 +76,154 @@
             border-radius: 30px;
             font-size: 1rem;
             font-weight: 500;
-            transition: all 0.3s ease;
+            transition: background 0.3s, transform 0.3s;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         .social-btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
         }
 
-        /* Sol altta yalnızca ses düğmesi */
-        .music-toggle {
+        /* Sol alt ses kontrolü */
+        .sound-control {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 48px;
-            height: 48px;
+            left: max(20px, env(safe-area-inset-left));
+            bottom: max(20px, env(safe-area-inset-bottom));
+            z-index: 100;
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            gap: 12px;
+        }
+
+        .sound-button {
+            position: relative;
+            display: grid;
+            place-items: center;
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
             border-radius: 50%;
+            border: 1px solid currentColor;
+            background: rgba(15, 15, 15, 0.8);
+            backdrop-filter: blur(10px);
+            color: #f4c66a;
             cursor: pointer;
-            z-index: 100;
-            transition: background 0.2s ease;
+            transition: color 0.25s, box-shadow 0.25s, transform 0.2s;
         }
 
-        .music-toggle:hover {
-            background: rgba(255, 255, 255, 0.25);
+        .sound-button:hover {
+            transform: scale(1.07);
         }
 
-        .music-toggle:focus-visible {
-            outline: 2px solid #ffffff;
-            outline-offset: 4px;
+        .sound-button:active {
+            transform: scale(0.94);
         }
 
-        .music-toggle svg {
-            width: 23px;
-            height: 23px;
+        .sound-button:focus-visible {
+            outline: 2px solid white;
+            outline-offset: 5px;
+        }
+
+        .sound-button svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .sound-control[data-state="on"] .sound-button {
+            color: #73f5b0;
+            box-shadow: 0 0 20px rgba(115, 245, 176, 0.25);
+        }
+
+        .sound-control[data-state="on"] .sound-button::after {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border: 1px solid #73f5b0;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sound-pulse 1.8s ease-out infinite;
+        }
+
+        .sound-control[data-state="off"] .sound-button,
+        .sound-control[data-state="error"] .sound-button {
+            color: #ff8585;
+            box-shadow: 0 0 15px rgba(255, 133, 133, 0.15);
+        }
+
+        .sound-label {
+            padding: 8px 12px;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.65);
+            color: #fff;
+            font-size: 12px;
+            backdrop-filter: blur(8px);
+        }
+
+        .sound-toast {
+            position: fixed;
+            left: 20px;
+            bottom: calc(max(20px, env(safe-area-inset-bottom)) + 70px);
+            z-index: 101;
+            max-width: calc(100vw - 40px);
+            padding: 12px 16px;
+            color: #fff;
+            background: rgba(10, 10, 10, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            backdrop-filter: blur(10px);
+            font-size: 13px;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.25s, transform 0.25s;
+            pointer-events: none;
+        }
+
+        .sound-toast.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         [hidden] {
             display: none !important;
         }
+
+        @keyframes sound-pulse {
+            from {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            to {
+                transform: scale(1.45);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .overlay-text h1 {
+                font-size: clamp(2rem, 8vw, 3.5rem);
+            }
+
+            .social-buttons {
+                gap: 12px;
+            }
+
+            .social-btn {
+                padding: 12px 18px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
     </style>
 </head>
+
 <body>
-    <div class="bg-container">
+    <main class="bg-container">
         <div class="overlay-text">
             <h1>DERDO İSTANBUL</h1>
         </div>
@@ -133,121 +233,237 @@
                target="_blank"
                rel="noopener noreferrer"
                class="social-btn">
-                <i class="fab fa-instagram"></i> Instagram
+                <i class="fab fa-instagram" aria-hidden="true"></i>
+                Instagram
             </a>
 
             <a href="https://youtube.com"
                target="_blank"
                rel="noopener noreferrer"
                class="social-btn">
-                <i class="fab fa-youtube"></i> YouTube
+                <i class="fab fa-youtube" aria-hidden="true"></i>
+                YouTube
             </a>
         </div>
+    </main>
+
+    <audio id="backgroundMusic"
+           src="alla-beni.mp3"
+           preload="auto"
+           loop
+           hidden></audio>
+
+    <div class="sound-control" id="soundControl" data-state="waiting">
+        <button class="sound-button"
+                id="soundButton"
+                type="button"
+                aria-label="Müziği başlat"
+                title="Müziği başlat">
+            <svg viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M11 5 6 9H3v6h3l5 4V5Z"></path>
+
+                <g id="soundWaves" hidden>
+                    <path d="M15 8a6 6 0 0 1 0 8"></path>
+                    <path d="M18 5a10 10 0 0 1 0 14"></path>
+                </g>
+
+                <g id="soundCross">
+                    <path d="m16 9 5 6m0-6-5 6"></path>
+                </g>
+            </svg>
+        </button>
+
+        <span class="sound-label" id="soundLabel">
+            Müzik yükleniyor…
+        </span>
     </div>
 
-    <!-- Oynatıcı ve şarkı adı görünmez -->
-    <audio id="backgroundMusic" loop preload="auto" hidden>
-        <source src="alla-beni.mp3" type="audio/mpeg">
-    </audio>
-
-    <button id="musicToggle"
-            class="music-toggle"
-            type="button"
-            aria-label="Sesi aç"
-            title="Sesi aç">
-        <svg viewBox="0 0 24 24"
-             fill="none"
-             stroke="currentColor"
-             stroke-width="2"
-             stroke-linecap="round"
-             stroke-linejoin="round"
-             aria-hidden="true">
-            <path d="M11 5 6 9H3v6h3l5 4V5Z"></path>
-            <g id="soundOn" hidden>
-                <path d="M15 8a6 6 0 0 1 0 8"></path>
-                <path d="M18 5a10 10 0 0 1 0 14"></path>
-            </g>
-            <g id="soundOff">
-                <path d="m16 9 5 6m0-6-5 6"></path>
-            </g>
-        </svg>
-    </button>
+    <div class="sound-toast"
+         id="soundToast"
+         role="status"
+         aria-live="polite"
+         aria-atomic="true"></div>
 
     <script>
         (() => {
-            const music = document.getElementById('backgroundMusic');
-            const button = document.getElementById('musicToggle');
-            const soundOn = document.getElementById('soundOn');
-            const soundOff = document.getElementById('soundOff');
+            const music = document.getElementById("backgroundMusic");
+            const control = document.getElementById("soundControl");
+            const button = document.getElementById("soundButton");
+            const label = document.getElementById("soundLabel");
+            const waves = document.getElementById("soundWaves");
+            const cross = document.getElementById("soundCross");
+            const toast = document.getElementById("soundToast");
 
             let userMuted = false;
-            let needsInteraction = true;
+            let waitingForInteraction = true;
+            let toastTimer;
+            let lastState = "";
 
+            // Her yeni sayfa açılışında ses açık ve seviye %60.
             music.volume = 0.6;
             music.muted = false;
 
-            function updateButton() {
-                const audible = !music.paused && !music.muted;
-                const label = audible ? 'Sesi kapat' : 'Sesi aç';
+            function notify(message) {
+                clearTimeout(toastTimer);
+                toast.textContent = message;
+                toast.classList.add("visible");
 
-                soundOn.hidden = !audible;
-                soundOff.hidden = audible;
-                button.setAttribute('aria-label', label);
-                button.title = label;
+                toastTimer = setTimeout(() => {
+                    toast.classList.remove("visible");
+                }, 3000);
+            }
+
+            function render(state, showNotification = true) {
+                const states = {
+                    on: {
+                        text: "Ses açık · %60",
+                        action: "Sesi kapat",
+                        message: "🔊 Ses açık · %60"
+                    },
+                    off: {
+                        text: "Ses kapalı",
+                        action: "Sesi aç",
+                        message: "🔇 Ses kapalı"
+                    },
+                    waiting: {
+                        text: "Başlatmak için sayfaya dokun",
+                        action: "Müziği başlat",
+                        message: "Müziğin başlaması için sayfanın herhangi bir yerine dokun."
+                    },
+                    loading: {
+                        text: "Müzik yükleniyor…",
+                        action: "Sesi kapat",
+                        message: "Müzik yükleniyor…"
+                    },
+                    error: {
+                        text: "Müzik yüklenemedi",
+                        action: "Yeniden dene",
+                        message: "alla-beni.mp3 dosyası yüklenemedi."
+                    }
+                };
+
+                const info = states[state];
+                control.dataset.state = state;
+                label.textContent = info.text;
+                button.title = info.action;
+                button.setAttribute("aria-label", info.action);
+
+                waves.hidden = state !== "on";
+                cross.hidden = state === "on";
+
+                if (showNotification && state !== lastState) {
+                    notify(info.message);
+                }
+
+                lastState = state;
+            }
+
+            function syncState() {
+                if (music.error) {
+                    render("error");
+                } else if (userMuted || music.muted) {
+                    render("off");
+                } else if (!music.paused && music.readyState >= 3) {
+                    render("on");
+                } else if (waitingForInteraction) {
+                    render("waiting");
+                } else {
+                    render("loading", false);
+                }
             }
 
             async function startMusic() {
+                if (userMuted) return;
+
+                music.muted = false;
+
                 try {
                     await music.play();
-                    needsInteraction = false;
+                    waitingForInteraction = false;
+                    syncState();
                 } catch (error) {
-                    if (error.name !== 'NotAllowedError') {
-                        console.error('Müzik oynatılamadı:', error);
+                    if (userMuted) {
+                        render("off");
+                    } else if (error.name === "NotAllowedError") {
+                        waitingForInteraction = true;
+                        render("waiting");
+                    } else if (error.name !== "AbortError") {
+                        render("error");
                     }
                 }
-
-                updateButton();
             }
 
-            button.addEventListener('click', () => {
-                // Bu tıklama sayfanın otomatik başlatıcısına gitmez.
-                if (music.paused) {
+            button.addEventListener("click", () => {
+                if (music.error) {
                     userMuted = false;
-                    music.muted = false;
+                    music.load();
                     startMusic();
                     return;
                 }
 
-                userMuted = !music.muted;
-                music.muted = userMuted;
-                updateButton();
+                if (userMuted || music.muted) {
+                    userMuted = false;
+                    music.muted = false;
+
+                    if (music.paused) {
+                        startMusic();
+                    } else {
+                        syncState();
+                    }
+                    return;
+                }
+
+                if (music.paused) {
+                    startMusic();
+                    return;
+                }
+
+                // Şarkı ilerlemeye devam eder; yalnızca ses kapanır.
+                userMuted = true;
+                music.muted = true;
+                render("off");
             });
 
-            function startOnInteraction(event) {
-                // Ses düğmesinin kendi işlemiyle çakışmasını önle.
+            function firstInteraction(event) {
+                // Düğmeye basılması, sesi kapattıktan sonra tekrar açmaz.
                 if (button.contains(event.target)) return;
-                if (event.type === 'keydown' && event.repeat) return;
+                if (event.type === "keydown" && event.repeat) return;
 
-                if (needsInteraction && !userMuted) {
+                if (waitingForInteraction && !userMuted) {
                     startMusic();
                 }
             }
 
-            document.addEventListener('click', startOnInteraction);
-            document.addEventListener('keydown', startOnInteraction);
+            document.addEventListener("click", firstInteraction);
+            document.addEventListener("keydown", firstInteraction);
 
-            music.addEventListener('playing', () => {
-                needsInteraction = false;
-                updateButton();
-            });
-            music.addEventListener('pause', updateButton);
-            music.addEventListener('volumechange', updateButton);
-            music.addEventListener('error', () => {
-                updateButton();
-                button.title = 'Müzik yüklenemedi; alla-beni.mp3 dosyasını kontrol et';
+            music.addEventListener("playing", () => {
+                waitingForInteraction = false;
+                syncState();
             });
 
-            // Sayfa açıldığında %60 sesle oynatmayı dene.
+            music.addEventListener("volumechange", syncState);
+            music.addEventListener("pause", syncState);
+
+            music.addEventListener("waiting", () => {
+                if (!userMuted && !waitingForInteraction) {
+                    render("loading", false);
+                }
+            });
+
+            music.addEventListener("error", () => {
+                render("error");
+            });
+
+            render("loading", false);
+
+            // Görsellerin yüklenmesini beklemeden sesli başlatmayı dene.
             startMusic();
         })();
     </script>
