@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Derdo İstanbul</title>
-    <!-- FontAwesome İkon Kütüphanesi -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -13,112 +11,92 @@
             box-sizing: border-box;
         }
         body, html {
-            height: 100%;
             width: 100%;
+            height: 100%;
             overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0d0d0d;
+            background-color: #000;
         }
         .bg-container {
-            position: relative;
-            height: 100vh;
-            width: 100vw;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=1920&auto=format&fit=crop');
-            background-position: center;
+            width: 100%;
+            height: 100%;
+            background: url('alla-beni.mp3') no-repeat center center; /* İsteğe göre arka plan görseli eklenebilir veya siyah kalabilir */
             background-size: cover;
-            background-repeat: no-repeat;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
         }
-        .overlay-text {
-            color: #ffffff;
-            text-align: center;
-            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
-            letter-spacing: 2px;
-            margin-bottom: 2rem;
-        }
-        .overlay-text h1 {
-            font-size: 3.5rem;
-            font-weight: 300;
-            text-transform: uppercase;
-        }
-        
-        /* Sosyal Medya Butonları */
-        .social-buttons {
-            display: flex;
-            gap: 20px;
-            z-index: 10;
-        }
-        .social-btn {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 24px;
-            color: #ffffff;
-            text-decoration: none;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 30px;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-        .social-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-        }
-
-        /* Müzik Oynatıcı Alanı */
-        .audio-player {
-            position: absolute;
+        /* Sol alt köşe müzik kontrol butonu */
+        .music-btn {
+            position: fixed;
             bottom: 20px;
-            right: 20px;
+            left: 20px;
             background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            padding: 10px 15px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            z-index: 999;
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: #fff;
-            font-size: 0.85rem;
+            gap: 8px;
         }
-        audio {
-            height: 30px;
-            outline: none;
+        .music-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
         }
     </style>
 </head>
 <body>
-    <div class="bg-container">
-        <div class="overlay-text">
-            <h1>DERDO İSTANBUL</h1>
-        </div>
 
-        <!-- Sosyal Medya Butonları -->
-        <div class="social-buttons">
-            <a href="https://instagram.com" target="_blank" class="social-btn">
-                <i class="fab fa-instagram"></i> Instagram
-            </a>
-            <a href="https://youtube.com" target="_blank" class="social-btn">
-                <i class="fab fa-youtube"></i> YouTube
-            </a>
-        </div>
+    <div class="bg-container"></div>
 
-        <!-- Müzik Çalar -->
-        <div class="audio-player">
-            <span><i class="fas fa-music"></i> Barış Manço - Alla Beni Pulla Beni</span>
-            <audio controls autoplay loop>
-                <source src="alla-beni.mp3" type="audio/mpeg">
-                Tarayıcınız ses öğesini desteklemiyor.
-            </audio>
-        </div>
-    </div>
+    <!-- Gizli Müzik Çalar -->
+    <audio id="bgMusic" src="alla-beni.mp3" loop preload="auto"></audio>
+
+    <!-- Sol Alt Müzik Kontrol Tuşu -->
+    <button class="music-btn" id="musicToggleBtn" onclick="toggleMusic()">
+        <span id="icon">🔇</span> <span id="btnText">Müziği Başlat</span>
+    </button>
+
+    <script>
+        const music = document.getElementById('bgMusic');
+        const btnText = document.getElementById('btnText');
+        const icon = document.getElementById('icon');
+        let isPlaying = false;
+
+        function toggleMusic() {
+            if (isPlaying) {
+                music.pause();
+                icon.textContent = '🔇';
+                btnText.textContent = 'Müziği Aç';
+                isPlaying = false;
+            } else {
+                music.play().then(() => {
+                    icon.textContent = '🔊';
+                    btnText.textContent = 'Müziği Kapat';
+                    isPlaying = true;
+                }).catch(e => {
+                    console.log("Oynatma hatası:", e);
+                });
+            }
+        }
+
+        // Sayfada herhangi bir yere ilk tıklamada otomatik başlatma (Tarayıcı engellerini aşmak için)
+        document.body.addEventListener('click', function initAutoPlay() {
+            if (!isPlaying) {
+                music.play().then(() => {
+                    icon.textContent = '🔊';
+                    btnText.textContent = 'Müziği Kapat';
+                    isPlaying = true;
+                }).catch(e => {});
+            }
+        }, { once: true });
+    </script>
+
 </body>
 </html>
