@@ -1,5 +1,24 @@
 <!DOCTYPE html>
 <html lang="tr">
+<style>
+    /* Ses açık: dalgalar görünür, çarpı gizlenir */
+    #soundControl[data-state="on"] #soundCross {
+        display: none !important;
+    }
+
+    #soundControl[data-state="on"] #soundWaves {
+        display: inline !important;
+    }
+
+    /* Ses kapalı veya henüz başlamamış: çarpı görünür */
+    #soundControl:not([data-state="on"]) #soundCross {
+        display: inline !important;
+    }
+
+    #soundControl:not([data-state="on"]) #soundWaves {
+        display: none !important;
+    }
+</style>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -221,6 +240,55 @@
         }
     </style>
 </head>
+<style>
+    /* Arka plan biraz daha karanlık */
+    .bg-container::before {
+        background: rgba(0, 0, 0, 0.38);
+    }
+
+    /* Aydınlanmanın üzerinde çok hafif sıcak ışık */
+    .bg-container::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.45s ease;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .bg-container.spotlight-active::before {
+            background: radial-gradient(
+                circle 310px at var(--mouse-x) var(--mouse-y),
+                rgba(0, 0, 0, 0) 0%,
+                rgba(0, 0, 0, 0.01) 12%,
+                rgba(0, 0, 0, 0.05) 28%,
+                rgba(0, 0, 0, 0.14) 46%,
+                rgba(0, 0, 0, 0.26) 65%,
+                rgba(0, 0, 0, 0.35) 84%,
+                rgba(0, 0, 0, 0.38) 100%
+            );
+        }
+
+        .bg-container.spotlight-active::after {
+            opacity: 1;
+            background:
+                radial-gradient(
+                    circle 130px at var(--mouse-x) var(--mouse-y),
+                    rgba(255, 240, 205, 0.12) 0%,
+                    rgba(255, 225, 165, 0.05) 40%,
+                    transparent 100%
+                ),
+                radial-gradient(
+                    circle 340px at var(--mouse-x) var(--mouse-y),
+                    rgba(255, 218, 155, 0.04) 0%,
+                    transparent 75%
+                );
+            mix-blend-mode: screen;
+        }
+    }
+</style>
 
 <body>
     <main class="bg-container">
@@ -467,5 +535,246 @@
             startMusic();
         })();
     </script>
+ü<style>
+    /* Karartma katmanı: yazıların ve butonların altında kalır. */
+    .bg-container {
+        isolation: isolate;
+        --mouse-x: 50%;
+        --mouse-y: 50%;
+    }
+
+    .bg-container::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background: rgba(0, 0, 0, 0.22);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .bg-container.spotlight-active::before {
+            background: radial-gradient(
+                circle 220px at var(--mouse-x) var(--mouse-y),
+                transparent 0%,
+                rgba(0, 0, 0, 0.04) 30%,
+                rgba(0, 0, 0, 0.22) 100%
+            );
+        }
+
+        html.star-cursor-active,
+        html.star-cursor-active * {
+            cursor: none !important;
+        }
+    }
+
+    #starCursor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 36px;
+        height: 36px;
+        margin: -18px 0 0 -18px;
+        z-index: 10001;
+        pointer-events: none;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        border: 1px solid rgba(255, 235, 185, 0.65);
+        border-radius: 50%;
+        box-shadow: 0 0 14px rgba(255, 220, 140, 0.18);
+    }
+
+    #starCursor svg {
+        width: 23px;
+        height: 23px;
+        fill: #fff3cb;
+        filter: drop-shadow(0 0 5px #ffc76a);
+    }
+
+    #starTrail {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        pointer-events: none;
+    }
+</style>
+
+<div id="starCursor" aria-hidden="true">
+    <svg viewBox="0 0 24 24">
+        <path d="m12 1 3 7 8 4-8 3-3 8-3-8-8-3 8-4Z"/>
+    </svg>
+</div>
+
+<canvas id="starTrail" aria-hidden="true"></canvas>
+
+<script>
+(() => {
+    const background = document.querySelector(".bg-container");
+    const cursor = document.getElementById("starCursor");
+    const canvas = document.getElementById("starTrail");
+    const context = canvas.getContext("2d");
+
+    if (!background || !context) return;
+
+    const desktop = matchMedia("(hover: hover) and (pointer: fine)");
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+
+    let particles = [];
+    let frame = null;
+    let previous = null;
+    let lastTime = 0;
+
+    function resize() {
+        const scale = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(innerWidth * scale);
+        canvas.height = Math.round(innerHeight * scale);
+        canvas.style.width = innerWidth + "px";
+        canvas.style.height = innerHeight + "px";
+        context.setTransform(scale, 0, 0, scale, 0, 0);
+    }
+
+    function drawStar(x, y, size, rotation) {
+        context.save();
+        context.translate(x, y);
+        context.rotate(rotation);
+        context.beginPath();
+
+        for (let point = 0; point < 8; point++) {
+            const angle = point * Math.PI / 4;
+            const radius = point % 2 === 0 ? size : size * 0.28;
+            const px = Math.cos(angle) * radius;
+            const py = Math.sin(angle) * radius;
+
+            if (point === 0) context.moveTo(px, py);
+            else context.lineTo(px, py);
+        }
+
+        context.closePath();
+        context.fill();
+        context.restore();
+    }
+
+    function animate(time) {
+        const delta = Math.min((time - lastTime) / 1000, 0.05);
+        lastTime = time;
+        context.clearRect(0, 0, innerWidth, innerHeight);
+
+        particles = particles.filter(particle => {
+            particle.life -= delta;
+            if (particle.life <= 0) return false;
+
+            particle.x += particle.vx * delta;
+            particle.y += particle.vy * delta;
+            particle.rotation += delta;
+
+            const fade = particle.life / particle.duration;
+            context.globalAlpha = fade;
+            context.fillStyle = "#ffe5a5";
+            context.shadowColor = "#ffc76a";
+            context.shadowBlur = 8;
+
+            drawStar(
+                particle.x,
+                particle.y,
+                particle.size * fade,
+                particle.rotation
+            );
+
+            return true;
+        });
+
+        context.globalAlpha = 1;
+
+        if (particles.length) {
+            frame = requestAnimationFrame(animate);
+        } else {
+            frame = null;
+        }
+    }
+
+    function addParticle(x, y) {
+        const duration = 0.35 + Math.random() * 0.3;
+
+        particles.push({
+            x,
+            y,
+            vx: (Math.random() - 0.5) * 16,
+            vy: 12 + Math.random() * 18,
+            size: 2 + Math.random() * 4,
+            rotation: Math.random() * Math.PI,
+            duration,
+            life: duration
+        });
+
+        if (particles.length > 160) particles.shift();
+
+        if (frame === null) {
+            lastTime = performance.now();
+            frame = requestAnimationFrame(animate);
+        }
+    }
+
+    function hideEffects() {
+        document.documentElement.classList.remove("star-cursor-active");
+        background.classList.remove("spotlight-active");
+        cursor.style.opacity = "0";
+        previous = null;
+        particles = [];
+
+        if (frame !== null) cancelAnimationFrame(frame);
+        frame = null;
+        context.clearRect(0, 0, innerWidth, innerHeight);
+    }
+
+    document.addEventListener("pointermove", event => {
+        if (!desktop.matches || event.pointerType === "touch") {
+            hideEffects();
+            return;
+        }
+
+        const x = event.clientX;
+        const y = event.clientY;
+        const bounds = background.getBoundingClientRect();
+
+        document.documentElement.classList.add("star-cursor-active");
+        background.classList.add("spotlight-active");
+        background.style.setProperty("--mouse-x", (x - bounds.left) + "px");
+        background.style.setProperty("--mouse-y", (y - bounds.top) + "px");
+
+        cursor.style.opacity = "1";
+        cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+        if (previous && !reducedMotion.matches) {
+            const dx = x - previous.x;
+            const dy = y - previous.y;
+            const distance = Math.hypot(dx, dy);
+
+            if (distance >= 3) {
+                const count = Math.min(12, Math.ceil(distance / 7));
+
+                for (let i = 1; i <= count; i++) {
+                    addParticle(
+                        previous.x + dx * i / count,
+                        previous.y + dy * i / count
+                    );
+                }
+            }
+        }
+
+        previous = { x, y };
+    }, { passive: true });
+
+    document.documentElement.addEventListener("pointerleave", hideEffects);
+    window.addEventListener("blur", hideEffects);
+    window.addEventListener("resize", resize);
+    desktop.addEventListener("change", hideEffects);
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) hideEffects();
+    });
+
+    resize();
+})();
+</script>
 </body>
 </html>
