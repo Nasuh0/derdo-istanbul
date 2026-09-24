@@ -1,5 +1,5 @@
 /
-  Content-Security-Policy: default-src 'none'; script-src 'sha384-l/MuTVDSil/TXz7YC3dsav5+Od3fDLktdCG4vMEu8+DnnjnAtnVCIRq0b87WEw4Q'; script-src-attr 'none'; style-src 'self'; img-src 'self' https://images.unsplash.com; media-src 'self'; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'; worker-src 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'sha384-l/MuTVDSil/TXz7YC3dsav5+Od3fDLktdCG4vMEu8+DnnjnAtnVCIRq0b87WEw4Q' https://static.cloudflareinsights.com; script-src-attr 'none'; style-src 'self'; img-src 'self' https://images.unsplash.com; media-src 'self'; connect-src https://derdoistanbul.com/cdn-cgi/rum https://www.derdoistanbul.com/cdn-cgi/rum https://cloudflareinsights.com/cdn-cgi/rum; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'; worker-src 'none'
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
@@ -7,7 +7,7 @@
   Cache-Control: no-cache
 
 /index.html
-  Content-Security-Policy: default-src 'none'; script-src 'sha384-l/MuTVDSil/TXz7YC3dsav5+Od3fDLktdCG4vMEu8+DnnjnAtnVCIRq0b87WEw4Q'; script-src-attr 'none'; style-src 'self'; img-src 'self' https://images.unsplash.com; media-src 'self'; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'; worker-src 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'sha384-l/MuTVDSil/TXz7YC3dsav5+Od3fDLktdCG4vMEu8+DnnjnAtnVCIRq0b87WEw4Q' https://static.cloudflareinsights.com; script-src-attr 'none'; style-src 'self'; img-src 'self' https://images.unsplash.com; media-src 'self'; connect-src https://derdoistanbul.com/cdn-cgi/rum https://www.derdoistanbul.com/cdn-cgi/rum https://cloudflareinsights.com/cdn-cgi/rum; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'; worker-src 'none'
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
@@ -15,10 +15,9 @@
   Cache-Control: no-cache
 
 /index
-  Content-Security-Policy: default-src 'none'; script-src 'sha384-l/MuTVDSil/TXz7YC3dsav5+Od3fDLktdCG4vMEu8+DnnjnAtnVCIRq0b87WEw4Q'; script-src-attr 'none'; style-src 'self'; img-src 'self' https://images.unsplash.com; media-src 'self'; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'; worker-src 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'sha384-l/MuTVDSil/TXz7YC3dsav5+Od3fDLktdCG4vMEu8+DnnjnAtnVCIRq0b87WEw4Q' https://static.cloudflareinsights.com; script-src-attr 'none'; style-src 'self'; img-src 'self' https://images.unsplash.com; media-src 'self'; connect-src https://derdoistanbul.com/cdn-cgi/rum https://www.derdoistanbul.com/cdn-cgi/rum https://cloudflareinsights.com/cdn-cgi/rum; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'; worker-src 'none'
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), accelerometer=(self), gyroscope=(self), magnetometer=(self)
   Cache-Control: no-cache
-
