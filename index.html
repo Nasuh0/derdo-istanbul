@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Derdo İstanbul</title>
+    <!-- FontAwesome İkon Kütüphanesi -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -21,11 +23,12 @@
             position: relative;
             height: 100vh;
             width: 100vw;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=1920&auto=format&fit=crop');
+            background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=1920&auto=format&fit=crop');
             background-position: center;
             background-size: cover;
             background-repeat: no-repeat;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
         }
@@ -34,11 +37,61 @@
             text-align: center;
             text-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
             letter-spacing: 2px;
+            margin-bottom: 2rem;
         }
         .overlay-text h1 {
             font-size: 3.5rem;
             font-weight: 300;
             text-transform: uppercase;
+        }
+        
+        /* Sosyal Medya Butonları */
+        .social-buttons {
+            display: flex;
+            gap: 20px;
+            z-index: 10;
+        }
+        .social-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            color: #ffffff;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .social-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Müzik Oynatıcı Alanı */
+        .audio-player {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+            font-size: 0.85rem;
+        }
+        audio {
+            height: 30px;
+            outline: none;
         }
     </style>
 </head>
@@ -46,6 +99,26 @@
     <div class="bg-container">
         <div class="overlay-text">
             <h1>DERDO İSTANBUL</h1>
+        </div>
+
+        <!-- Sosyal Medya Butonları (Linkleri kendi hesaplarınıza göre güncelleyebilirsiniz) -->
+        <div class="social-buttons">
+            <a href="https://instagram.com" target="_blank" class="social-btn">
+                <i class="fab fa-instagram"></i> Instagram
+            </a>
+            <a href="https://youtube.com" target="_blank" class="social-btn">
+                <i class="fab fa-youtube"></i> YouTube
+            </a>
+        </div>
+
+        <!-- Barış Manço Müzik Çalar -->
+        <div class="audio-player">
+            <span><i class="fas fa-music"></i> Barış Manço</span>
+            <audio controls autoplay loop>
+                <!-- Barış Manço - Gülpembe Ses Kaynağı -->
+                <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+                Tarayıcınız ses öğesini desteklemiyor.
+            </audio>
         </div>
     </div>
 </body>
