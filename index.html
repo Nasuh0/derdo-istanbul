@@ -4,14 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Derdo İstanbul</title>
-    <!-- FontAwesome İkon Kütüphanesi -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body, html {
             height: 100%;
             width: 100%;
@@ -19,11 +22,15 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #0d0d0d;
         }
+
         .bg-container {
             position: relative;
             height: 100vh;
             width: 100vw;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=1920&auto=format&fit=crop');
+            background-image: linear-gradient(
+                rgba(0, 0, 0, 0.3),
+                rgba(0, 0, 0, 0.6)
+            ), url('https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=1920&auto=format&fit=crop');
             background-position: center;
             background-size: cover;
             background-repeat: no-repeat;
@@ -32,6 +39,7 @@
             justify-content: center;
             align-items: center;
         }
+
         .overlay-text {
             color: #ffffff;
             text-align: center;
@@ -39,18 +47,19 @@
             letter-spacing: 2px;
             margin-bottom: 2rem;
         }
+
         .overlay-text h1 {
             font-size: 3.5rem;
             font-weight: 300;
             text-transform: uppercase;
         }
-        
-        /* Sosyal Medya Butonları */
+
         .social-buttons {
             display: flex;
             gap: 20px;
             z-index: 10;
         }
+
         .social-btn {
             display: flex;
             align-items: center;
@@ -67,31 +76,49 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
+
         .social-btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
         }
 
-        /* Müzik Oynatıcı Alanı */
-        .audio-player {
-            position: absolute;
+        /* Sol altta yalnızca ses düğmesi */
+        .music-toggle {
+            position: fixed;
             bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            padding: 10px 15px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            left: 20px;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: #fff;
-            font-size: 0.85rem;
+            justify-content: center;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 100;
+            transition: background 0.2s ease;
         }
-        audio {
-            height: 30px;
-            outline: none;
+
+        .music-toggle:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .music-toggle:focus-visible {
+            outline: 2px solid #ffffff;
+            outline-offset: 4px;
+        }
+
+        .music-toggle svg {
+            width: 23px;
+            height: 23px;
+        }
+
+        [hidden] {
+            display: none !important;
         }
     </style>
 </head>
@@ -101,24 +128,128 @@
             <h1>DERDO İSTANBUL</h1>
         </div>
 
-        <!-- Sosyal Medya Butonları -->
         <div class="social-buttons">
-            <a href="https://instagram.com" target="_blank" class="social-btn">
+            <a href="https://instagram.com"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="social-btn">
                 <i class="fab fa-instagram"></i> Instagram
             </a>
-            <a href="https://youtube.com" target="_blank" class="social-btn">
+
+            <a href="https://youtube.com"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="social-btn">
                 <i class="fab fa-youtube"></i> YouTube
             </a>
         </div>
-
-        <!-- Müzik Çalar -->
-        <div class="audio-player">
-            <span><i class="fas fa-music"></i> Barış Manço - Alla Beni Pulla Beni</span>
-            <audio controls autoplay loop>
-                <source src="alla-beni.mp3" type="audio/mpeg">
-                Tarayıcınız ses öğesini desteklemiyor.
-            </audio>
-        </div>
     </div>
+
+    <!-- Oynatıcı ve şarkı adı görünmez -->
+    <audio id="backgroundMusic" loop preload="auto" hidden>
+        <source src="alla-beni.mp3" type="audio/mpeg">
+    </audio>
+
+    <button id="musicToggle"
+            class="music-toggle"
+            type="button"
+            aria-label="Sesi aç"
+            title="Sesi aç">
+        <svg viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             aria-hidden="true">
+            <path d="M11 5 6 9H3v6h3l5 4V5Z"></path>
+            <g id="soundOn" hidden>
+                <path d="M15 8a6 6 0 0 1 0 8"></path>
+                <path d="M18 5a10 10 0 0 1 0 14"></path>
+            </g>
+            <g id="soundOff">
+                <path d="m16 9 5 6m0-6-5 6"></path>
+            </g>
+        </svg>
+    </button>
+
+    <script>
+        (() => {
+            const music = document.getElementById('backgroundMusic');
+            const button = document.getElementById('musicToggle');
+            const soundOn = document.getElementById('soundOn');
+            const soundOff = document.getElementById('soundOff');
+
+            let userMuted = false;
+            let needsInteraction = true;
+
+            music.volume = 0.6;
+            music.muted = false;
+
+            function updateButton() {
+                const audible = !music.paused && !music.muted;
+                const label = audible ? 'Sesi kapat' : 'Sesi aç';
+
+                soundOn.hidden = !audible;
+                soundOff.hidden = audible;
+                button.setAttribute('aria-label', label);
+                button.title = label;
+            }
+
+            async function startMusic() {
+                try {
+                    await music.play();
+                    needsInteraction = false;
+                } catch (error) {
+                    if (error.name !== 'NotAllowedError') {
+                        console.error('Müzik oynatılamadı:', error);
+                    }
+                }
+
+                updateButton();
+            }
+
+            button.addEventListener('click', () => {
+                // Bu tıklama sayfanın otomatik başlatıcısına gitmez.
+                if (music.paused) {
+                    userMuted = false;
+                    music.muted = false;
+                    startMusic();
+                    return;
+                }
+
+                userMuted = !music.muted;
+                music.muted = userMuted;
+                updateButton();
+            });
+
+            function startOnInteraction(event) {
+                // Ses düğmesinin kendi işlemiyle çakışmasını önle.
+                if (button.contains(event.target)) return;
+                if (event.type === 'keydown' && event.repeat) return;
+
+                if (needsInteraction && !userMuted) {
+                    startMusic();
+                }
+            }
+
+            document.addEventListener('click', startOnInteraction);
+            document.addEventListener('keydown', startOnInteraction);
+
+            music.addEventListener('playing', () => {
+                needsInteraction = false;
+                updateButton();
+            });
+            music.addEventListener('pause', updateButton);
+            music.addEventListener('volumechange', updateButton);
+            music.addEventListener('error', () => {
+                updateButton();
+                button.title = 'Müzik yüklenemedi; alla-beni.mp3 dosyasını kontrol et';
+            });
+
+            // Sayfa açıldığında %60 sesle oynatmayı dene.
+            startMusic();
+        })();
+    </script>
 </body>
 </html>
