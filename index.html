@@ -146,6 +146,26 @@
         }
     }
 </style>
+<style>
+    .social-buttons {
+        position: relative;
+    }
+
+    .social-buttons::after {
+        content: "Nasuh Türkmen";
+        position: absolute;
+        top: calc(100% + 20px);
+        left: 0;
+        width: 100%;
+        text-align: center;
+        color: #e2f5ff;
+        font-size: 17px;
+        font-weight: 400;
+        letter-spacing: 3px;
+        text-shadow: 0 0 12px rgba(100, 210, 255, 0.5);
+        pointer-events: none;
+    }
+</style>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -903,7 +923,7 @@
     resize();
 })();
 </script>
-</body>
+</body>18:43 24.09.2026
 <style>
     .motion-enable {
         position: fixed;
