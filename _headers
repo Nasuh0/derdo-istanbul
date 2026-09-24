@@ -1,4 +1,4 @@
-/deneme
+/
   Content-Security-Policy: default-src 'none'; script-src 'sha384-l/MuTVDSil/TXz7YC3dsav5+Od3fDLktdCG4vMEu8+DnnjnAtnVCIRq0b87WEw4Q'; script-src-attr 'none'; style-src 'self'; img-src 'self' https://images.unsplash.com; media-src 'self'; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'; worker-src 'none'
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
@@ -6,7 +6,7 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(), accelerometer=(self), gyroscope=(self), magnetometer=(self)
   Cache-Control: no-cache
 
-/deneme.html
+/index.html
   Content-Security-Policy: default-src 'none'; script-src 'sha384-l/MuTVDSil/TXz7YC3dsav5+Od3fDLktdCG4vMEu8+DnnjnAtnVCIRq0b87WEw4Q'; script-src-attr 'none'; style-src 'self'; img-src 'self' https://images.unsplash.com; media-src 'self'; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'; worker-src 'none'
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
@@ -14,7 +14,7 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(), accelerometer=(self), gyroscope=(self), magnetometer=(self)
   Cache-Control: no-cache
 
-/deneme/
+/index
   Content-Security-Policy: default-src 'none'; script-src 'sha384-l/MuTVDSil/TXz7YC3dsav5+Od3fDLktdCG4vMEu8+DnnjnAtnVCIRq0b87WEw4Q'; script-src-attr 'none'; style-src 'self'; img-src 'self' https://images.unsplash.com; media-src 'self'; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'; worker-src 'none'
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
