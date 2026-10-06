@@ -52,3 +52,27 @@ export interface Session {
   accessToken: string;
   accessTokenExpiresIn: number;
 }
+
+export interface VoiceChannel {
+  id: string;
+  name: string;
+  slug: string;
+  type: "PUBLIC" | "PRIVATE";
+}
+
+export interface VoiceParticipant {
+  id: string;
+  name: string;
+  microphoneEnabled: boolean;
+  speaking: boolean;
+}
+
+export interface VoiceJoinResponse {
+  token: string;
+  url: string;
+  channel: {
+    id: string;
+    name: string;
+  };
+  expiresIn: number;
+}

@@ -3,6 +3,7 @@ import type { Socket } from "socket.io-client";
 import { AuthScreen } from "./components/AuthScreen";
 import { api, getAccessToken, logout, refreshSession } from "./lib/api";
 import { connectRealtime } from "./lib/realtime";
+import { useVoice } from "./lib/useVoice";
 import type {
   DirectConversation,
   DirectMessage,
@@ -39,6 +40,7 @@ export default function App() {
   const [typing, setTyping] = useState<string[]>([]);
   const [connectionState, setConnectionState] = useState("bağlanıyor");
   const socketRef = useRef<Socket | null>(null);
+  const voice = useVoice(Boolean(session));
   const activeRef = useRef<ActiveView | null>(null);
 
   useEffect(() => {
@@ -258,6 +260,44 @@ export default function App() {
             </button>
           ))}
 
+          <div className="section-title spaced">SES KANALLARI</div>
+          {voice.channels.map((channel) => (
+            <div className="voice-channel-block" key={channel.id}>
+              <button
+                className={
+                  voice.currentChannel?.id === channel.id
+                    ? "channel voice-channel active"
+                    : "channel voice-channel"
+                }
+                disabled={voice.connecting}
+                onClick={() => void voice.join(channel)}
+              >
+                <span>🔊</span>
+                <b>{channel.name}</b>
+                {channel.type === "PRIVATE" && <em>🔒</em>}
+              </button>
+              {voice.currentChannel?.id === channel.id && (
+                <div className="voice-participants">
+                  {voice.participants.map((participant) => (
+                    <div
+                      className={
+                        participant.speaking
+                          ? "voice-participant speaking"
+                          : "voice-participant"
+                      }
+                      key={participant.id}
+                    >
+                      <span className="voice-person-dot" />
+                      <b>{participant.name}</b>
+                      <small>{participant.microphoneEnabled ? "🎙" : "🔇"}</small>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+          {voice.error && <div className="voice-error">{voice.error}</div>}
+
           <div className="section-title spaced">ÖZEL MESAJLAR</div>
           {conversations.map((conversation) => (
             <button
@@ -286,15 +326,36 @@ export default function App() {
             <strong>{session.user.username}</strong>
             <small>{presence.get(session.user.id)?.status ?? "online"}</small>
           </div>
-          <select
-            aria-label="Durum"
-            defaultValue="online"
-            onChange={(event) => setMyPresence(event.target.value as PresenceStatus)}
-          >
-            <option value="online">🟢</option>
-            <option value="away">🟡</option>
-            <option value="busy">🔴</option>
-          </select>
+          {voice.currentChannel ? (
+            <div className="voice-controls">
+              <button
+                className={voice.micEnabled ? "" : "muted"}
+                onClick={() => void voice.toggleMicrophone()}
+                title={voice.micEnabled ? "Mikrofonu kapat" : "Mikrofonu aç"}
+                type="button"
+              >
+                {voice.micEnabled ? "🎙" : "🔇"}
+              </button>
+              <button
+                className="disconnect-voice"
+                onClick={() => void voice.leave()}
+                title="Ses kanalından çık"
+                type="button"
+              >
+                ☎
+              </button>
+            </div>
+          ) : (
+            <select
+              aria-label="Durum"
+              defaultValue="online"
+              onChange={(event) => setMyPresence(event.target.value as PresenceStatus)}
+            >
+              <option value="online">🟢</option>
+              <option value="away">🟡</option>
+              <option value="busy">🔴</option>
+            </select>
+          )}
         </footer>
       </aside>
 
