@@ -222,6 +222,63 @@ footer{border-top:1px solid var(--line);background:#040605}
   .footer-inner{padding:24px 0;align-items:flex-start;flex-direction:column}.footer-links{width:100%;justify-content:space-between}
 }
 
+
+/* Subtle violet layer — green remains the primary accent */
+:root{
+  --bg:#07060a;
+  --panel:#0b0910;
+  --panel-2:#100c17;
+  --line:#211a2c;
+  --line-2:#332440;
+  --muted:#82778d;
+  --dim:#5c5265;
+  --violet:#a66cff;
+  --violet-soft:#6d49a3;
+}
+body{
+  background:
+    radial-gradient(circle at 78% 8%,rgba(133,76,220,.075),transparent 31%),
+    radial-gradient(circle at 15% 74%,rgba(88,45,150,.045),transparent 32%),
+    var(--bg);
+}
+.grid-bg{
+  background-image:
+    linear-gradient(rgba(166,108,255,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(114,255,155,.035) 1px,transparent 1px);
+}
+.grid-bg:after{
+  background:
+    radial-gradient(circle at 68% 28%,rgba(137,78,226,.13),transparent 29%),
+    radial-gradient(circle at 55% 36%,rgba(55,255,116,.07),transparent 26%);
+}
+.topbar{background:rgba(7,6,10,.88)}
+.btn-ghost{background:#0c0911}
+.btn-outline{border-color:#4b365e}
+kbd{background:#0e0a13}
+.hero h1 span{-webkit-text-stroke:1px #74677f;text-stroke:1px #74677f}
+.terminal-card{
+  border-color:#382748;
+  background:linear-gradient(145deg,rgba(14,10,20,.91),rgba(7,11,8,.86));
+  box-shadow:0 30px 90px rgba(29,8,49,.22),0 0 60px rgba(113,62,176,.05);
+}
+.terminal-head>span i:not(:first-child){background:#382942}
+.signal-bar{background:#09070d}
+.forum-row:before{background:linear-gradient(90deg,rgba(146,83,224,.055),rgba(114,255,155,.02),transparent 72%)}
+.forum-row:hover,.forum-row:focus{border-bottom-color:#49315d}
+.forum-icon{background:#0b0810}
+.forum-title span,.badge{border-color:#49315d;background:#100b17}
+.topic-row:hover:not(.topic-header),.topic-header{background:#0b0810}
+.side-card{background:linear-gradient(145deg,rgba(14,10,19,.68),rgba(8,12,9,.48))}
+.archive-banner{
+  border-color:#3c2b4b;
+  background:linear-gradient(105deg,#0e0915,#09070d 58%,#071009);
+  box-shadow:inset 0 0 70px rgba(133,76,220,.035);
+}
+.archive-banner:after{color:rgba(166,108,255,.035)}
+.search-modal{background:rgba(5,2,8,.82)}
+.search-box{border-color:#503568;background:#0c0811;box-shadow:0 35px 110px rgba(10,0,18,.9)}
+.toast{background:#100b16;border-color:#55376e}
+
 </style>
 </head>
 <body>
