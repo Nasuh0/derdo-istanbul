@@ -45,6 +45,12 @@ export default function App() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [adminOpen, setAdminOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [mobileMembersOpen, setMobileMembersOpen] = useState(false);
+  const [userQuery, setUserQuery] = useState("");
+  const [userSearchResults, setUserSearchResults] = useState<User[]>([]);
+  const [userSearchError, setUserSearchError] = useState("");
+  const [searchingUsers, setSearchingUsers] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const voice = useVoice(Boolean(session));
@@ -137,6 +143,43 @@ export default function App() {
     };
   }, [session]);
 
+  useEffect(() => {
+    if (!session) return;
+
+    const query = userQuery.trim();
+    if (query.length < 2) {
+      setUserSearchResults([]);
+      setUserSearchError("");
+      setSearchingUsers(false);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      setSearchingUsers(true);
+      setUserSearchError("");
+
+      api<User[]>(`/api/users?q=${encodeURIComponent(query)}`)
+        .then((items) => {
+          if (cancelled) return;
+          setUserSearchResults(items.filter((user) => user.id !== session.user.id).slice(0, 12));
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          setUserSearchResults([]);
+          setUserSearchError(err instanceof Error ? err.message : "Kullanıcı aranamadı");
+        })
+        .finally(() => {
+          if (!cancelled) setSearchingUsers(false);
+        });
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [session, userQuery]);
+
   const onlineUsers = useMemo(
     () => users.filter((user) => presence.has(user.id)),
     [users, presence]
@@ -152,6 +195,8 @@ export default function App() {
       socketRef.current?.emit("room:leave", { roomId: previous.room.id });
     }
     setActive({ kind: "room", room });
+    setMobileNavOpen(false);
+    setMobileMembersOpen(false);
     setTyping([]);
     setDmMessages([]);
     setPendingAttachments([]);
@@ -167,6 +212,10 @@ export default function App() {
       method: "POST"
     });
     setActive({ kind: "dm", conversation });
+    setMobileNavOpen(false);
+    setMobileMembersOpen(false);
+    setUserQuery("");
+    setUserSearchResults([]);
     setRoomMessages([]);
     setTyping([]);
     setPendingAttachments([]);
@@ -290,7 +339,7 @@ export default function App() {
         <button className="server-button">+</button>
       </aside>
 
-      <aside className="channel-panel">
+      <aside className={mobileNavOpen ? "channel-panel mobile-open" : "channel-panel"}>
         <header className="workspace-title">
           <div>
             <strong>Derdo İstanbul</strong>
@@ -355,6 +404,33 @@ export default function App() {
           ))}
           {voice.error && <div className="voice-error">{voice.error}</div>}
 
+          <div className="section-title spaced">KULLANICI BUL / MESAJ AT</div>
+          <div className="user-search">
+            <input
+              value={userQuery}
+              onChange={(event) => setUserQuery(event.target.value)}
+              placeholder="@kullanıcı adı ara"
+              autoComplete="off"
+              aria-label="Kullanıcı adı ara"
+            />
+            {searchingUsers && <div className="user-search-status">Aranıyor…</div>}
+            {userSearchError && <div className="user-search-error">{userSearchError}</div>}
+            {!searchingUsers && userQuery.trim().length >= 2 && userSearchResults.length === 0 && !userSearchError && (
+              <div className="user-search-status">Kullanıcı bulunamadı.</div>
+            )}
+            {userSearchResults.length > 0 && (
+              <div className="user-search-results">
+                {userSearchResults.map((user) => (
+                  <button type="button" key={user.id} onClick={() => void openDm(user)}>
+                    <span className="search-user-avatar">{user.username.slice(0, 1).toUpperCase()}</span>
+                    <b>{user.username}</b>
+                    <small>Mesaj</small>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="section-title spaced">ÖZEL MESAJLAR</div>
           {conversations.map((conversation) => (
             <button
@@ -418,6 +494,18 @@ export default function App() {
 
       <main className="chat-panel">
         <header className="chat-header">
+          <button
+            className="mobile-header-button channels-toggle"
+            type="button"
+            onClick={() => {
+              setMobileMembersOpen(false);
+              setMobileNavOpen((open) => !open);
+            }}
+            title="Kanallar ve ses"
+            aria-label="Kanallar ve ses"
+          >
+            ☰
+          </button>
           <span className="header-icon">{active?.kind === "dm" ? "@" : "#"}</span>
           <strong>
             {active?.kind === "room"
@@ -433,7 +521,58 @@ export default function App() {
                 ? "Direkt mesaj"
                 : "Topluluk kanalı"}
           </span>
+          <div className="mobile-header-actions">
+            <button
+              className="mobile-header-button voice-toggle"
+              type="button"
+              onClick={() => {
+                setMobileMembersOpen(false);
+                setMobileNavOpen(true);
+              }}
+              title="Ses kanalları"
+              aria-label="Ses kanalları"
+            >
+              🎙
+            </button>
+            <button
+              className="mobile-header-button members-toggle"
+              type="button"
+              onClick={() => {
+                setMobileNavOpen(false);
+                setMobileMembersOpen((open) => !open);
+              }}
+              title="Kullanıcılar"
+              aria-label="Kullanıcılar"
+            >
+              👥
+            </button>
+          </div>
         </header>
+
+        {voice.currentChannel && (
+          <div className="mobile-voice-dock">
+            <div>
+              <strong>🔊 {voice.currentChannel.name}</strong>
+              <small>{voice.participants.length} kişi bağlı</small>
+            </div>
+            <button
+              type="button"
+              className={voice.micEnabled ? "" : "muted"}
+              onClick={() => void voice.toggleMicrophone()}
+              title={voice.micEnabled ? "Mikrofonu kapat" : "Mikrofonu aç"}
+            >
+              {voice.micEnabled ? "🎙" : "🔇"}
+            </button>
+            <button
+              type="button"
+              className="disconnect-voice"
+              onClick={() => void voice.leave()}
+              title="Ses kanalından çık"
+            >
+              ☎
+            </button>
+          </div>
+        )}
 
         <section className="messages">
           {messages.length === 0 && (
@@ -537,7 +676,7 @@ export default function App() {
         </form>
       </main>
 
-      <aside className="member-panel">
+      <aside className={mobileMembersOpen ? "member-panel mobile-open" : "member-panel"}>
         <div className="member-heading">ÇEVRİMİÇİ — {onlineUsers.length}</div>
         {onlineUsers.map((user) => (
           <button className="member" key={user.id} onClick={() => void openDm(user)}>
@@ -558,6 +697,19 @@ export default function App() {
           </button>
         ))}
       </aside>
+
+      {(mobileNavOpen || mobileMembersOpen) && (
+        <button
+          className="mobile-drawer-backdrop"
+          type="button"
+          aria-label="Menüyü kapat"
+          onClick={() => {
+            setMobileNavOpen(false);
+            setMobileMembersOpen(false);
+          }}
+        />
+      )}
+
       {adminOpen && session.user.role === "ADMIN" && (
         <AdminPanel
           onClose={() => setAdminOpen(false)}
