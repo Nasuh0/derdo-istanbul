@@ -11,12 +11,16 @@ export function validateEnv(raw: Record<string, unknown>) {
   const redisUrl = String(raw.REDIS_URL ?? "");
   const accessSecret = String(raw.JWT_ACCESS_SECRET ?? "");
   const refreshSecret = String(raw.JWT_REFRESH_SECRET ?? "");
-  const livekitUrl = String(raw.LIVEKIT_URL ?? "");
-  const livekitKey = String(raw.LIVEKIT_API_KEY ?? "");
-  const livekitSecret = String(raw.LIVEKIT_API_SECRET ?? "");
-  const cloudName = String(raw.CLOUDINARY_CLOUD_NAME ?? "");
-  const cloudKey = String(raw.CLOUDINARY_API_KEY ?? "");
-  const cloudSecret = String(raw.CLOUDINARY_API_SECRET ?? "");
+
+  const livekitUrl = String(raw.LIVEKIT_URL ?? "").trim();
+  const livekitKey = String(raw.LIVEKIT_API_KEY ?? "").trim();
+  const livekitSecret = String(raw.LIVEKIT_API_SECRET ?? "").trim();
+  const livekitValues = [livekitUrl, livekitKey, livekitSecret].filter(Boolean);
+
+  const cloudName = String(raw.CLOUDINARY_CLOUD_NAME ?? "").trim();
+  const cloudKey = String(raw.CLOUDINARY_API_KEY ?? "").trim();
+  const cloudSecret = String(raw.CLOUDINARY_API_SECRET ?? "").trim();
+  const cloudinaryValues = [cloudName, cloudKey, cloudSecret].filter(Boolean);
 
   if (!databaseUrl.startsWith("postgresql://") && !databaseUrl.startsWith("postgres://")) {
     throw new Error("DATABASE_URL must be a PostgreSQL connection string");
@@ -30,14 +34,21 @@ export function validateEnv(raw: Record<string, unknown>) {
   if (accessSecret === refreshSecret) {
     throw new Error("Access and refresh JWT secrets must be different");
   }
-  if (!livekitUrl.startsWith("ws://") && !livekitUrl.startsWith("wss://")) {
-    throw new Error("LIVEKIT_URL must start with ws:// or wss://");
+
+  if (livekitValues.length > 0 && livekitValues.length < 3) {
+    throw new Error("LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set together");
   }
-  if (!livekitKey || livekitSecret.length < 16) {
-    throw new Error("LIVEKIT credentials are required");
+  if (livekitValues.length === 3) {
+    if (!livekitUrl.startsWith("ws://") && !livekitUrl.startsWith("wss://")) {
+      throw new Error("LIVEKIT_URL must start with ws:// or wss://");
+    }
+    if (livekitSecret.length < 16) {
+      throw new Error("LIVEKIT_API_SECRET must be at least 16 characters long");
+    }
   }
-  if (!cloudName || !cloudKey || !cloudSecret) {
-    throw new Error("Cloudinary credentials are required");
+
+  if (cloudinaryValues.length > 0 && cloudinaryValues.length < 3) {
+    throw new Error("Cloudinary credentials must be set together");
   }
 
   const bcryptRounds = positiveInt(raw.BCRYPT_ROUNDS, 12, "BCRYPT_ROUNDS");
@@ -65,9 +76,12 @@ export function validateEnv(raw: Record<string, unknown>) {
     LIVEKIT_URL: livekitUrl,
     LIVEKIT_API_KEY: livekitKey,
     LIVEKIT_API_SECRET: livekitSecret,
+    LIVEKIT_ENABLED: livekitValues.length === 3,
     CLOUDINARY_CLOUD_NAME: cloudName,
     CLOUDINARY_API_KEY: cloudKey,
     CLOUDINARY_API_SECRET: cloudSecret,
+    CLOUDINARY_ENABLED: cloudinaryValues.length === 3,
+    UPLOAD_DIR: String(raw.UPLOAD_DIR ?? "/data/uploads"),
     PORT: positiveInt(raw.PORT, 3000, "PORT"),
     JWT_ACCESS_SECRET: accessSecret,
     JWT_REFRESH_SECRET: refreshSecret,

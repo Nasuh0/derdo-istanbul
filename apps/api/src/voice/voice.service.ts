@@ -1,29 +1,46 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  ServiceUnavailableException
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class VoiceService {
-  private readonly rooms: RoomServiceClient;
+  private readonly rooms: RoomServiceClient | null;
+  private readonly livekitUrl: string;
+  private readonly livekitKey: string;
+  private readonly livekitSecret: string;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService
   ) {
-    const websocketUrl = config.getOrThrow<string>("LIVEKIT_URL");
-    const serviceUrl = websocketUrl
-      .replace(/^wss:\/\//, "https://")
-      .replace(/^ws:\/\//, "http://");
+    this.livekitUrl = config.get<string>("LIVEKIT_URL", "").trim();
+    this.livekitKey = config.get<string>("LIVEKIT_API_KEY", "").trim();
+    this.livekitSecret = config.get<string>("LIVEKIT_API_SECRET", "").trim();
 
-    this.rooms = new RoomServiceClient(
-      serviceUrl,
-      config.getOrThrow<string>("LIVEKIT_API_KEY"),
-      config.getOrThrow<string>("LIVEKIT_API_SECRET")
-    );
+    if (this.livekitUrl && this.livekitKey && this.livekitSecret) {
+      const serviceUrl = this.livekitUrl
+        .replace(/^wss:\/\//, "https://")
+        .replace(/^ws:\/\//, "http://");
+
+      this.rooms = new RoomServiceClient(
+        serviceUrl,
+        this.livekitKey,
+        this.livekitSecret
+      );
+    } else {
+      this.rooms = null;
+    }
   }
 
   async listForUser(userId: string) {
+    if (!this.rooms) return [];
+
     return this.prisma.voiceChannel.findMany({
       where: {
         OR: [
@@ -42,6 +59,10 @@ export class VoiceService {
   }
 
   async issueJoinToken(user: { id: string; username: string }, channelId: string) {
+    if (!this.rooms) {
+      throw new ServiceUnavailableException("Voice service is not configured yet");
+    }
+
     const dbUser = await this.prisma.user.findUnique({
       where: { id: user.id },
       select: { isBanned: true }
@@ -71,8 +92,8 @@ export class VoiceService {
     const roomName = `voice:${channel.id}`;
     const ttl = this.config.get<number>("LIVEKIT_TOKEN_TTL_SECONDS", 300);
     const token = new AccessToken(
-      this.config.getOrThrow<string>("LIVEKIT_API_KEY"),
-      this.config.getOrThrow<string>("LIVEKIT_API_SECRET"),
+      this.livekitKey,
+      this.livekitSecret,
       {
         identity: user.id,
         name: user.username,
@@ -91,7 +112,7 @@ export class VoiceService {
 
     return {
       token: await token.toJwt(),
-      url: this.config.getOrThrow<string>("LIVEKIT_URL"),
+      url: this.livekitUrl,
       channel: {
         id: channel.id,
         name: channel.name
@@ -101,6 +122,8 @@ export class VoiceService {
   }
 
   async disconnectUser(userId: string): Promise<void> {
+    if (!this.rooms) return;
+
     const rooms = await this.rooms.listRooms();
     const revokeTokenTs = BigInt(Math.floor(Date.now() / 1000) + 1);
 
@@ -108,7 +131,7 @@ export class VoiceService {
       rooms
         .filter((room) => room.name.startsWith("voice:"))
         .map((room) =>
-          this.rooms.removeParticipant(room.name, userId, { revokeTokenTs })
+          this.rooms!.removeParticipant(room.name, userId, { revokeTokenTs })
         )
     );
   }

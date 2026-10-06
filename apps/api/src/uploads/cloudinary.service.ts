@@ -1,19 +1,33 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, ServiceUnavailableException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { v2 as cloudinary, type UploadApiResponse } from "cloudinary";
 
 @Injectable()
 export class CloudinaryService {
+  readonly enabled: boolean;
+
   constructor(config: ConfigService) {
-    cloudinary.config({
-      cloud_name: config.getOrThrow<string>("CLOUDINARY_CLOUD_NAME"),
-      api_key: config.getOrThrow<string>("CLOUDINARY_API_KEY"),
-      api_secret: config.getOrThrow<string>("CLOUDINARY_API_SECRET"),
-      secure: true
-    });
+    const cloudName = config.get<string>("CLOUDINARY_CLOUD_NAME", "").trim();
+    const apiKey = config.get<string>("CLOUDINARY_API_KEY", "").trim();
+    const apiSecret = config.get<string>("CLOUDINARY_API_SECRET", "").trim();
+
+    this.enabled = Boolean(cloudName && apiKey && apiSecret);
+
+    if (this.enabled) {
+      cloudinary.config({
+        cloud_name: cloudName,
+        api_key: apiKey,
+        api_secret: apiSecret,
+        secure: true
+      });
+    }
   }
 
   uploadImage(buffer: Buffer): Promise<UploadApiResponse> {
+    if (!this.enabled) {
+      throw new ServiceUnavailableException("Cloudinary is not configured");
+    }
+
     return new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
@@ -34,6 +48,7 @@ export class CloudinaryService {
   }
 
   async destroy(publicId: string): Promise<void> {
+    if (!this.enabled) return;
     await cloudinary.uploader.destroy(publicId, {
       resource_type: "image",
       invalidate: true

@@ -1,5 +1,8 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { basename } from "node:path";
+import { ConfigService } from "@nestjs/config";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
+import { basename, join } from "node:path";
+import { randomUUID } from "node:crypto";
 import { PrismaService } from "../prisma/prisma.service";
 import { CloudinaryService } from "./cloudinary.service";
 
@@ -30,12 +33,27 @@ function detectImageMime(buffer: Buffer): string | null {
   return null;
 }
 
+function extensionForMime(mimeType: string): string {
+  switch (mimeType) {
+    case "image/jpeg": return "jpg";
+    case "image/png": return "png";
+    case "image/gif": return "gif";
+    case "image/webp": return "webp";
+    default: return "bin";
+  }
+}
+
 @Injectable()
 export class UploadsService {
+  private readonly uploadDir: string;
+
   constructor(
     private readonly prisma: PrismaService,
-    private readonly cloudinary: CloudinaryService
-  ) {}
+    private readonly cloudinary: CloudinaryService,
+    config: ConfigService
+  ) {
+    this.uploadDir = config.get<string>("UPLOAD_DIR", "/data/uploads");
+  }
 
   async uploadImage(userId: string, file: Express.Multer.File) {
     if (!file?.buffer?.length) {
@@ -51,19 +69,41 @@ export class UploadsService {
       .replace(/[^A-Za-z0-9._ -]/g, "_")
       .slice(0, 255);
 
-    const uploaded = await this.cloudinary.uploadImage(file.buffer);
+    let provider = "filesystem";
+    let publicId = "";
+    let url = "";
+    let width: number | null = null;
+    let height: number | null = null;
+    let localPath: string | null = null;
+
+    if (this.cloudinary.enabled) {
+      const uploaded = await this.cloudinary.uploadImage(file.buffer);
+      provider = "cloudinary";
+      publicId = uploaded.public_id;
+      url = uploaded.secure_url;
+      width = uploaded.width ?? null;
+      height = uploaded.height ?? null;
+    } else {
+      await mkdir(this.uploadDir, { recursive: true });
+      const filename = `${randomUUID()}.${extensionForMime(mimeType)}`;
+      localPath = join(this.uploadDir, filename);
+      await writeFile(localPath, file.buffer, { flag: "wx" });
+      publicId = `filesystem:${filename}`;
+      url = `/media/${filename}`;
+    }
 
     try {
       return await this.prisma.attachment.create({
         data: {
           uploaderId: userId,
-          publicId: uploaded.public_id,
-          url: uploaded.secure_url,
+          provider,
+          publicId,
+          url,
           mimeType,
           sizeBytes: file.size,
           originalName: cleanName || "image",
-          width: uploaded.width,
-          height: uploaded.height
+          width,
+          height
         },
         select: {
           id: true,
@@ -77,7 +117,11 @@ export class UploadsService {
         }
       });
     } catch (error) {
-      await this.cloudinary.destroy(uploaded.public_id).catch(() => undefined);
+      if (provider === "cloudinary") {
+        await this.cloudinary.destroy(publicId).catch(() => undefined);
+      } else if (localPath) {
+        await unlink(localPath).catch(() => undefined);
+      }
       throw error;
     }
   }
