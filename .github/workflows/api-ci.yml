@@ -1,4 +1,4 @@
-name: API CI
+name: Project CI
 
 on:
   push:
@@ -9,9 +9,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     env:
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      REDIS_URL: redis://localhost:6379
+      JWT_ACCESS_SECRET: ci-access-secret-must-be-at-least-32-characters-long
+      JWT_REFRESH_SECRET: ci-refresh-secret-must-be-different-and-32-chars
+      COOKIE_SECURE: "false"
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -21,4 +25,5 @@ jobs:
         with:
           node-version: 24
       - run: pnpm install --no-frozen-lockfile
-      - run: pnpm --dir apps/api build
+      - run: pnpm build:api
+      - run: pnpm build:web
