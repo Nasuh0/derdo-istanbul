@@ -20,6 +20,10 @@ jobs:
       LIVEKIT_API_KEY: ci-key
       LIVEKIT_API_SECRET: ci-livekit-secret-at-least-16-characters
       LIVEKIT_TOKEN_TTL_SECONDS: 300
+      CLOUDINARY_CLOUD_NAME: ci-cloud
+      CLOUDINARY_API_KEY: ci-key
+      CLOUDINARY_API_SECRET: ci-secret
+      MAX_IMAGE_UPLOAD_BYTES: 8388608
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

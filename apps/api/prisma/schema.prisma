@@ -41,6 +41,8 @@ model User {
   dmMemberships      DirectConversationMember[]
   directMessages     DirectMessage[]
   voiceMemberships   VoiceChannelMember[]
+  attachments        Attachment[] @relation("AttachmentUploader")
+  auditLogs          AuditLog[] @relation("AuditActor")
 
   @@map("users")
 }
@@ -84,8 +86,9 @@ model ChatMessage {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  room   ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  author User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  room        ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
 
   @@index([roomId, createdAt])
   @@index([authorId])
@@ -127,6 +130,7 @@ model DirectMessage {
 
   conversation DirectConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   author       User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
 
   @@index([conversationId, createdAt])
   @@index([authorId])
@@ -158,4 +162,45 @@ model VoiceChannelMember {
   @@id([channelId, userId])
   @@index([userId])
   @@map("voice_channel_members")
+}
+
+model Attachment {
+  id              String   @id @default(uuid())
+  uploaderId      String   @map("uploader_id")
+  chatMessageId   String?  @map("chat_message_id")
+  directMessageId String?  @map("direct_message_id")
+  provider        String   @default("cloudinary") @db.VarChar(32)
+  publicId        String   @unique @map("public_id") @db.VarChar(255)
+  url             String   @db.Text
+  mimeType        String   @map("mime_type") @db.VarChar(64)
+  sizeBytes       Int      @map("size_bytes")
+  originalName    String   @map("original_name") @db.VarChar(255)
+  width           Int?
+  height          Int?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  uploader      User           @relation("AttachmentUploader", fields: [uploaderId], references: [id], onDelete: Cascade)
+  chatMessage   ChatMessage?   @relation(fields: [chatMessageId], references: [id], onDelete: Cascade)
+  directMessage DirectMessage? @relation(fields: [directMessageId], references: [id], onDelete: Cascade)
+
+  @@index([uploaderId, createdAt])
+  @@index([chatMessageId])
+  @@index([directMessageId])
+  @@map("attachments")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?  @map("actor_id")
+  action     String   @db.VarChar(80)
+  targetType String   @map("target_type") @db.VarChar(80)
+  targetId   String?  @map("target_id") @db.VarChar(80)
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([actorId])
+  @@map("audit_logs")
 }

@@ -14,6 +14,9 @@ export function validateEnv(raw: Record<string, unknown>) {
   const livekitUrl = String(raw.LIVEKIT_URL ?? "");
   const livekitKey = String(raw.LIVEKIT_API_KEY ?? "");
   const livekitSecret = String(raw.LIVEKIT_API_SECRET ?? "");
+  const cloudName = String(raw.CLOUDINARY_CLOUD_NAME ?? "");
+  const cloudKey = String(raw.CLOUDINARY_API_KEY ?? "");
+  const cloudSecret = String(raw.CLOUDINARY_API_SECRET ?? "");
 
   if (!databaseUrl.startsWith("postgresql://") && !databaseUrl.startsWith("postgres://")) {
     throw new Error("DATABASE_URL must be a PostgreSQL connection string");
@@ -31,7 +34,10 @@ export function validateEnv(raw: Record<string, unknown>) {
     throw new Error("LIVEKIT_URL must start with ws:// or wss://");
   }
   if (!livekitKey || livekitSecret.length < 16) {
-    throw new Error("LIVEKIT_API_KEY and a sufficiently long LIVEKIT_API_SECRET are required");
+    throw new Error("LIVEKIT credentials are required");
+  }
+  if (!cloudName || !cloudKey || !cloudSecret) {
+    throw new Error("Cloudinary credentials are required");
   }
 
   const bcryptRounds = positiveInt(raw.BCRYPT_ROUNDS, 12, "BCRYPT_ROUNDS");
@@ -59,12 +65,16 @@ export function validateEnv(raw: Record<string, unknown>) {
     LIVEKIT_URL: livekitUrl,
     LIVEKIT_API_KEY: livekitKey,
     LIVEKIT_API_SECRET: livekitSecret,
+    CLOUDINARY_CLOUD_NAME: cloudName,
+    CLOUDINARY_API_KEY: cloudKey,
+    CLOUDINARY_API_SECRET: cloudSecret,
     PORT: positiveInt(raw.PORT, 3000, "PORT"),
     JWT_ACCESS_SECRET: accessSecret,
     JWT_REFRESH_SECRET: refreshSecret,
     JWT_ACCESS_TTL_SECONDS: positiveInt(raw.JWT_ACCESS_TTL_SECONDS, 900, "JWT_ACCESS_TTL_SECONDS"),
     JWT_REFRESH_TTL_SECONDS: positiveInt(raw.JWT_REFRESH_TTL_SECONDS, 604800, "JWT_REFRESH_TTL_SECONDS"),
     LIVEKIT_TOKEN_TTL_SECONDS: positiveInt(raw.LIVEKIT_TOKEN_TTL_SECONDS, 300, "LIVEKIT_TOKEN_TTL_SECONDS"),
+    MAX_IMAGE_UPLOAD_BYTES: positiveInt(raw.MAX_IMAGE_UPLOAD_BYTES, 8388608, "MAX_IMAGE_UPLOAD_BYTES"),
     BCRYPT_ROUNDS: bcryptRounds,
     COOKIE_SAME_SITE: sameSite
   };
