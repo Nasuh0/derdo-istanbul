@@ -3,161 +3,291 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <meta name="theme-color" content="#040407">
+  <meta name="theme-color" content="#09090d">
+  <meta name="description" content="İstanbul ilçelerini 3D keşfet.">
   <title>İSTANBUL // 3D</title>
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.12.0/dist/maplibre-gl.css">
   <style>
-    :root{--bg:#040407;--text:#f6f3ff;--muted:#8c8798;--violet:#a873ff;--line:rgba(255,255,255,.13)}
+    :root{
+      --bg:#09090d;--panel:rgba(11,10,16,.80);--panel2:rgba(17,15,24,.88);
+      --line:rgba(255,255,255,.14);--text:#f7f4fb;--muted:#aaa4b4;
+      --violet:#a66cff;--violet2:#6f42c1;
+    }
     *{box-sizing:border-box}
-    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
-    #fallbackMap,#google3d{position:fixed;inset:0;width:100%;height:100%;background:#050507}
-    #google3d{display:none}
-    #fallbackMap{display:block}
-    .shade{position:fixed;inset:0;z-index:4;pointer-events:none;background:radial-gradient(circle at 50% 44%,transparent 25%,rgba(0,0,0,.24) 62%,rgba(0,0,0,.76) 110%)}
-    .hud{position:fixed;z-index:20;left:24px;top:22px;font:600 10px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.16em;color:#aaa5b5}
-    .hud b{color:#eee9f6}
-    .badge{position:fixed;right:24px;top:22px;z-index:20;border:1px solid var(--line);background:rgba(5,5,8,.66);backdrop-filter:blur(12px);padding:9px 11px;font:600 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.12em;color:#b7b1c1}
-    .badge i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--violet);margin-right:7px;box-shadow:0 0 12px var(--violet)}
-    .intro{position:fixed;inset:0;z-index:50;background:#040407;display:grid;place-items:center;transition:opacity .85s ease,visibility .85s ease,transform 1.1s cubic-bezier(.2,.8,.2,1)}
-    .intro.leave{opacity:0;visibility:hidden;transform:scale(1.22)}
-    .intro:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 52%,rgba(111,64,183,.16),transparent 43%),repeating-linear-gradient(180deg,transparent 0 3px,rgba(255,255,255,.018) 4px);pointer-events:none}
-    .city-wrap{position:relative;width:min(1120px,94vw);height:min(520px,72vh);display:grid;place-items:center}
-    .eyebrow{position:absolute;top:4%;left:50%;transform:translateX(-50%);color:#767181;font:600 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.28em;white-space:nowrap}
-    .istanbul-svg{width:100%;height:100%;filter:drop-shadow(0 0 34px rgba(151,92,255,.12));overflow:visible}
-    .land{fill:#0e0d14;stroke:#8a5de1;stroke-width:1.4;vector-effect:non-scaling-stroke;transition:.25s;cursor:crosshair}
-    .land:hover{fill:#13101c;stroke:#b286ff}
-    .district{fill:none;stroke:rgba(176,137,255,.24);stroke-width:1;vector-effect:non-scaling-stroke;pointer-events:none}
-    .coastglow{fill:none;stroke:rgba(188,147,255,.15);stroke-width:12;filter:blur(10px);pointer-events:none}
-    .waterline{fill:none;stroke:rgba(255,255,255,.08);stroke-width:1;stroke-dasharray:4 8;pointer-events:none}
-    .city-name{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;text-align:center;text-shadow:0 4px 28px #000}
-    .city-name strong{font-size:clamp(38px,8vw,104px);letter-spacing:.16em;font-weight:750}
-    .city-name small{display:block;margin-top:10px;color:#8d8796;font:600 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.28em}
-    .help{position:absolute;bottom:5%;left:50%;transform:translateX(-50%);pointer-events:none;text-align:center;color:#aaa5b3;font-size:11px;letter-spacing:.04em}
-    .help span{display:inline-flex;align-items:center;gap:9px;padding:11px 15px;border:1px solid var(--line);border-radius:999px;background:rgba(9,8,13,.72);backdrop-filter:blur(12px)}
-    .help i{width:6px;height:6px;background:var(--violet);border-radius:50%;box-shadow:0 0 16px var(--violet);animation:pulse 1.5s ease-in-out infinite}
-    @keyframes pulse{50%{opacity:.35;transform:scale(.7)}}
-    .target{position:fixed;z-index:70;width:74px;height:74px;border:1px solid #ad7aff;border-radius:50%;pointer-events:none;opacity:0;transform:translate(-50%,-50%) scale(1.7)}
-    .target:before,.target:after{content:"";position:absolute;background:#cab0ff}.target:before{left:36px;top:-14px;width:1px;height:100px}.target:after{top:36px;left:-14px;height:1px;width:100px}
-    .target.show{animation:lock .65s cubic-bezier(.2,.8,.2,1) forwards}
-    @keyframes lock{to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
-    .flash{position:fixed;inset:0;z-index:65;background:#fff;pointer-events:none;opacity:0}
-    .flash.go{animation:flash .95s ease}
-    @keyframes flash{0%,48%{opacity:0}58%{opacity:.2}68%{opacity:0}76%{opacity:.07}100%{opacity:0}}
-    .status{position:fixed;z-index:25;left:50%;bottom:24px;transform:translateX(-50%);padding:9px 12px;background:rgba(5,5,8,.68);border:1px solid var(--line);backdrop-filter:blur(10px);font:600 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;color:#938d9e;letter-spacing:.08em;opacity:0;transition:.25s;pointer-events:none}
-    .status.show{opacity:1}
-    @media(max-width:700px){.hud{left:14px;top:14px}.badge{right:14px;top:14px}.city-wrap{height:60vh;width:96vw}.city-name strong{letter-spacing:.1em}.help{bottom:1%}}
+    html,body,#map{width:100%;height:100%;margin:0}
+    html,body{overflow:hidden;background:var(--bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text)}
+    #map{position:fixed;inset:0;background:#11131a}
+    .maplibregl-canvas{outline:none}
+    .maplibregl-ctrl-group{background:rgba(14,13,20,.88)!important;border:1px solid var(--line)!important;box-shadow:0 8px 30px rgba(0,0,0,.28)!important}
+    .maplibregl-ctrl button{filter:invert(1);opacity:.85}
+    .maplibregl-ctrl-attrib{font-size:9px!important;background:rgba(255,255,255,.82)!important}
+
+    .vignette{position:fixed;inset:0;z-index:3;pointer-events:none;background:
+      radial-gradient(circle at 50% 48%,transparent 45%,rgba(0,0,0,.18) 82%,rgba(0,0,0,.48) 120%),
+      linear-gradient(180deg,rgba(0,0,0,.18),transparent 16%,transparent 78%,rgba(0,0,0,.24))}
+    .topbar{position:fixed;left:22px;right:22px;top:18px;z-index:20;display:flex;align-items:flex-start;justify-content:space-between;pointer-events:none}
+    .brand,.mode{pointer-events:auto;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(14px);box-shadow:0 12px 36px rgba(0,0,0,.22)}
+    .brand{padding:12px 15px;border-radius:12px}
+    .brand strong{display:block;font-size:13px;letter-spacing:.22em}
+    .brand small{display:block;margin-top:4px;color:var(--muted);font:600 9px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.12em}
+    .mode{padding:10px 12px;border-radius:10px;color:#bfb8ca;font:600 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.11em}
+    .mode i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--violet);box-shadow:0 0 14px var(--violet);margin-right:7px}
+
+    .hero{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:12;text-align:center;pointer-events:none;transition:.45s}
+    .hero.hide{opacity:0;transform:translate(-50%,-16px)}
+    .hero h1{margin:0;font-size:clamp(34px,6vw,76px);letter-spacing:.17em;text-shadow:0 3px 28px rgba(0,0,0,.55)}
+    .hero p{margin:9px 0 0;color:#e4dff0;font-size:11px;letter-spacing:.10em;text-shadow:0 2px 12px rgba(0,0,0,.7)}
+
+    .district-label{border:1px solid rgba(255,255,255,.22);background:rgba(13,12,18,.78);backdrop-filter:blur(8px);color:#f7f4fb;
+      border-radius:999px;padding:5px 8px;font:650 9px/1 ui-sans-serif,system-ui,sans-serif;white-space:nowrap;cursor:pointer;
+      box-shadow:0 5px 18px rgba(0,0,0,.22);transition:.18s;user-select:none}
+    .district-label:hover{transform:translateY(-2px) scale(1.05);border-color:#b98cff;background:rgba(45,29,67,.9);box-shadow:0 7px 24px rgba(100,47,180,.35)}
+    .district-label.major{font-size:10px;padding:6px 9px;border-color:rgba(190,145,255,.52)}
+
+    .district-title{position:fixed;left:50%;top:24px;transform:translateX(-50%);z-index:22;opacity:0;pointer-events:none;transition:.35s;text-align:center;text-shadow:0 4px 24px #000}
+    .district-title.show{opacity:1}
+    .district-title b{display:block;font-size:clamp(24px,4vw,52px);letter-spacing:.14em}
+    .district-title span{color:#c5bdce;font:600 9px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.18em}
+
+    .controls{position:fixed;left:22px;bottom:22px;z-index:22;display:none;gap:8px;align-items:flex-end}
+    .controls.show{display:flex}
+    .control-card{border:1px solid var(--line);background:var(--panel2);backdrop-filter:blur(14px);border-radius:12px;padding:11px 13px;box-shadow:0 12px 34px rgba(0,0,0,.28)}
+    .control-card b{display:block;font-size:10px;letter-spacing:.10em;margin-bottom:5px}
+    .control-card small{display:block;color:#b5afbd;font-size:9px;line-height:1.55}
+    .back{border:1px solid rgba(183,135,255,.5);background:rgba(67,38,100,.82);color:white;border-radius:10px;padding:11px 13px;font-weight:700;font-size:10px;cursor:pointer}
+    .back:hover{background:rgba(91,50,137,.92)}
+
+    .bottom-tip{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:15;padding:10px 14px;border:1px solid var(--line);
+      background:var(--panel);backdrop-filter:blur(12px);border-radius:999px;font-size:10px;color:#e7e2ec;box-shadow:0 10px 30px rgba(0,0,0,.24);transition:.35s}
+    .bottom-tip.hide{opacity:0;transform:translate(-50%,12px);pointer-events:none}
+    .bottom-tip i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--violet);box-shadow:0 0 12px var(--violet);margin-right:8px}
+
+    .flash{position:fixed;inset:0;z-index:40;background:white;opacity:0;pointer-events:none}
+    .flash.go{animation:flash .9s ease}
+    @keyframes flash{0%,45%{opacity:0}55%{opacity:.16}65%{opacity:0}74%{opacity:.06}100%{opacity:0}}
+
+    .load-error{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:50;display:none;width:min(520px,88vw);padding:18px;border:1px solid rgba(255,105,125,.35);background:rgba(20,10,14,.92);border-radius:14px;text-align:center}
+    .load-error.show{display:block}.load-error b{display:block;margin-bottom:7px}.load-error small{color:#c8bdc3;line-height:1.45}
+
+    @media(max-width:720px){
+      .topbar{left:12px;right:12px;top:12px}.brand{padding:10px 12px}.brand strong{font-size:11px}.mode{padding:9px 10px}
+      .hero{top:14%}.hero h1{font-size:35px}.hero p{font-size:9px}.district-label{font-size:8px;padding:4px 6px}
+      .district-label.major{font-size:9px}.controls{left:12px;right:12px;bottom:13px}.control-card{display:none}.back{width:100%}
+      .bottom-tip{bottom:15px;max-width:90vw;white-space:nowrap;font-size:9px}
+    }
   </style>
 </head>
 <body>
-  <div id="fallbackMap"></div>
-  <div id="google3d"></div>
-  <div class="shade"></div>
-  <div class="hud">CITY <b>İSTANBUL</b><br>MODE <b id="modeText">READY</b></div>
-  <div class="badge"><i></i><span id="engineLabel">3D ENGINE</span></div>
-  <div class="status" id="status"></div>
+  <div id="map" aria-label="İstanbul 3D ilçe haritası"></div>
+  <div class="vignette"></div>
   <div class="flash" id="flash"></div>
-  <div class="target" id="target"></div>
 
-  <section class="intro" id="intro">
-    <div class="city-wrap" id="cityWrap">
-      <div class="eyebrow">SELECT A POINT // ISTANBUL ONLY</div>
-      <svg class="istanbul-svg" viewBox="0 0 1200 500" aria-label="İstanbul silueti">
-        <path class="coastglow" d="M70 286 C145 244 224 220 305 231 C382 241 425 209 506 218 C561 224 604 202 650 181 C701 158 744 173 776 194 C820 222 865 213 916 206 C1001 195 1070 215 1132 250"/>
-        <path class="land" id="istanbulLand" d="M51 305
-          C89 266 132 243 183 232 C229 222 269 226 305 238
-          C344 251 380 244 413 225 C449 204 492 207 527 222
-          C555 234 576 229 603 211 C626 195 645 168 674 158
-          C707 147 735 164 755 190 C775 216 797 223 828 218
-          C876 210 926 195 976 202 C1026 208 1082 222 1150 252
-          L1125 283 C1064 264 1012 260 963 267 C904 276 857 292 810 289
-          C767 286 733 269 699 250 C673 236 651 237 625 250
-          C593 267 572 288 542 296 C505 306 468 298 431 285
-          C393 272 358 271 323 283 C282 297 245 311 202 313
-          C152 315 102 312 51 305 Z"/>
-        <path class="land" d="M706 298 C746 292 776 300 804 319 C831 337 855 337 886 327 C922 315 952 318 981 337 C1007 354 1040 359 1075 354 C1057 380 1027 395 991 398 C956 401 930 386 901 376 C872 365 847 368 819 380 C786 393 754 386 733 367 C714 349 704 324 706 298 Z"/>
-        <path class="district" d="M173 235 L198 312 M267 228 L284 297 M351 247 L367 274 M430 218 L447 290 M518 221 L532 295 M602 211 L614 254 M675 158 L691 249 M756 191 L748 274 M833 217 L843 287 M920 205 L925 276 M1014 208 L1006 267"/>
-        <path class="district" d="M725 302 L757 385 M789 311 L810 382 M853 334 L866 374 M922 323 L935 387 M987 340 L992 396"/>
-        <path class="waterline" d="M661 161 C648 191 650 222 664 249 C677 273 692 294 706 317"/>
-      </svg>
-      <div class="city-name"><strong>İSTANBUL</strong><small>EUROPE × ASIA // 3D CITY</small></div>
-      <div class="help"><span><i></i> İstanbul üzerinde istediğin noktaya dokun</span></div>
+  <div class="topbar">
+    <div class="brand"><strong>İSTANBUL</strong><small>39 İLÇE // INTERACTIVE 3D</small></div>
+    <div class="mode"><i></i><span id="mode">İLÇE SEÇ</span></div>
+  </div>
+
+  <div class="hero" id="hero">
+    <h1>İSTANBUL</h1>
+    <p>Bir ilçe adına dokun ve 3D olarak içine gir</p>
+  </div>
+
+  <div class="district-title" id="districtTitle"><b id="districtName"></b><span>İSTANBUL // 3D GEZİNTİ</span></div>
+
+  <div class="controls" id="controls">
+    <button class="back" id="backBtn">← İSTANBUL'A DÖN</button>
+    <div class="control-card">
+      <b>3D KONTROLLER</b>
+      <small>Sağ tuş + sürükle: etrafa bak<br>Tekerlek: yakınlaş / uzaklaş<br>W A S D: hareket · Q E: dön</small>
     </div>
-  </section>
+  </div>
+
+  <div class="bottom-tip" id="bottomTip"><i></i>İlçe adına bas: Avcılar, Üsküdar, Esenyurt, Kadıköy...</div>
+  <div class="load-error" id="loadError"><b>Harita yüklenemedi</b><small>Harita servisine erişimde geçici bir sorun oluştu. Sayfayı yenilediğinde tekrar denenecek.</small></div>
 
   <script src="https://unpkg.com/maplibre-gl@6.12.0/dist/maplibre-gl.js"></script>
   <script>
-    const IST = {west:27.78,east:30.05,south:40.72,north:41.55};
-    const intro = document.getElementById('intro');
-    const cityWrap = document.getElementById('cityWrap');
-    const target = document.getElementById('target');
-    const flash = document.getElementById('flash');
-    const statusEl = document.getElementById('status');
-    const modeText = document.getElementById('modeText');
-    const engineLabel = document.getElementById('engineLabel');
-    let map, selected = {lat:41.0082,lng:28.9784}, busy=false;
+    const ISTANBUL_BOUNDS=[[27.78,40.72],[30.05,41.55]];
+    const HOME={center:[28.98,41.075],zoom:9.45,pitch:0,bearing:0};
 
-    function status(t){statusEl.textContent=t;statusEl.classList.add('show');setTimeout(()=>statusEl.classList.remove('show'),2600)}
-    function clickToLngLat(e){
-      const r=cityWrap.getBoundingClientRect(), x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
-      return {lng:IST.west+x*(IST.east-IST.west),lat:IST.north-y*(IST.north-IST.south)};
-    }
-    function lockAt(e){
-      target.style.left=e.clientX+'px';target.style.top=e.clientY+'px';
-      target.classList.remove('show');void target.offsetWidth;target.classList.add('show');
-    }
+    const districts=[
+      ["Adalar",29.05873,40.86623],["Küçükçekmece",28.78055,41.02057],["Beşiktaş",29.02411,41.07171],
+      ["Bahçelievler",28.84540,41.00980],["Beylikdüzü",28.64749,40.98784],["Bakırköy",28.83470,40.98061],
+      ["Bayrampaşa",28.90131,41.05156],["Esenyurt",28.66122,41.04891],["Avcılar",28.71915,41.03751],
+      ["Sultangazi",28.87267,41.12071],["Başakşehir",28.74510,41.10339],["Esenler",28.86718,41.06253],
+      ["Eyüpsultan",28.87314,41.16518],["Bağcılar",28.84036,41.04499],["Arnavutköy",28.65582,41.24820],
+      ["Gaziosmanpaşa",28.90677,41.07300],["Güngören",28.87997,41.01995],["Zeytinburnu",28.90967,41.00518],
+      ["Fatih",28.95356,41.01425],["Beyoğlu",28.96740,41.04337],["Sarıyer",29.02441,41.17175],
+      ["Kağıthane",28.97886,41.08060],["Şişli",28.98895,41.06194],["Üsküdar",29.04900,41.03517],
+      ["Ümraniye",29.13753,41.02721],["Beykoz",29.21482,41.13836],["Maltepe",29.15556,40.94399],
+      ["Kadıköy",29.06308,40.98114],["Ataşehir",29.13790,40.98430],["Sancaktepe",29.27454,40.99939],
+      ["Sultanbeyli",29.27833,40.96808],["Kartal",29.19679,40.91517],["Çekmeköy",29.26996,41.07275],
+      ["Tuzla",29.35558,40.89137],["Pendik",29.36102,40.95682],["Çatalca",28.33276,41.32041],
+      ["Silivri",28.18343,41.19777],["Büyükçekmece",28.51250,41.05706],["Şile",29.63961,41.08919]
+    ];
 
-    cityWrap.addEventListener('click',async e=>{
-      if(busy) return;
-      const land=e.target.closest && e.target.closest('.land');
-      if(!land) return;
-      busy=true; selected=clickToLngLat(e); lockAt(e);
-      modeText.textContent='LOCKED';
-      setTimeout(()=>{flash.classList.add('go');intro.classList.add('leave')},420);
-      setTimeout(async()=>{
-        target.classList.remove('show');
-        startFallbackDive(selected)
-      },850);
+    const major=new Set(["Avcılar","Esenyurt","Küçükçekmece","Üsküdar","Kadıköy","Beşiktaş","Fatih","Beyoğlu","Şişli","Bakırköy","Beylikdüzü"]);
+    const markers=[];
+    let in3D=false, currentName="";
+
+    const map=new maplibregl.Map({
+      container:"map",
+      style:"https://tiles.openfreemap.org/styles/liberty",
+      center:HOME.center,zoom:HOME.zoom,pitch:HOME.pitch,bearing:HOME.bearing,
+      minZoom:8.65,maxZoom:19.5,maxPitch:80,maxBounds:ISTANBUL_BOUNDS,
+      renderWorldCopies:false,attributionControl:true,
+      canvasContextAttributes:{antialias:true}
     });
 
-    function initFallback(){
-      map=new maplibregl.Map({
-        container:'fallbackMap',
-        style:'https://tiles.openfreemap.org/styles/dark',
-        center:[28.9784,41.0082],
-        zoom:10.4,pitch:54,bearing:-14,
-        minZoom:9.1,maxZoom:19.5,
-        maxBounds:[[IST.west,IST.south],[IST.east,IST.north]],
-        renderWorldCopies:false,
-        attributionControl:false
-      });
-      map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'top-right');
-      map.on('load',()=>{
-        try{
-          const layers=map.getStyle().layers||[];
-          const label=layers.find(l=>l.type==='symbol'&&l.layout&&l.layout['text-field']);
-          map.addSource('b3d',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
-          map.addLayer({
-            id:'istanbul-3d',source:'b3d','source-layer':'building',type:'fill-extrusion',minzoom:14,
-            paint:{
-              'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],0],0,'#15131a',45,'#272030',120,'#4b3767'],
-              'fill-extrusion-height':['interpolate',['linear'],['zoom'],14,0,15,['coalesce',['get','render_height'],['get','height'],8]],
-              'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
-              'fill-extrusion-opacity':.9
-            }
-          },label?label.id:undefined);
-        }catch(_){}
+    map.addControl(new maplibregl.NavigationControl({visualizePitch:true,showCompass:true}),'top-right');
+
+    const mode=document.getElementById("mode");
+    const hero=document.getElementById("hero");
+    const districtTitle=document.getElementById("districtTitle");
+    const districtName=document.getElementById("districtName");
+    const controls=document.getElementById("controls");
+    const bottomTip=document.getElementById("bottomTip");
+    const flash=document.getElementById("flash");
+    const loadError=document.getElementById("loadError");
+
+    function hideBaseLabels(){
+      try{
+        (map.getStyle().layers||[]).forEach(l=>{
+          if(l.type==="symbol"){
+            try{map.setLayoutProperty(l.id,"visibility","none")}catch(_){}
+          }
+        });
+      }catch(_){}
+    }
+
+    function add3DBuildings(){
+      if(map.getLayer("istanbul-buildings-3d")) return;
+      const style=map.getStyle();
+      const sourceId=Object.entries(style.sources||{}).find(([id,s])=>s&&s.type==="vector")?.[0];
+      if(!sourceId) return;
+      try{
+        map.addLayer({
+          id:"istanbul-buildings-3d",
+          type:"fill-extrusion",
+          source:sourceId,
+          "source-layer":"building",
+          minzoom:13.8,
+          filter:["!",["has","hide_3d"]],
+          paint:{
+            "fill-extrusion-color":[
+              "interpolate",["linear"],["coalesce",["get","render_height"],["get","height"],0],
+              0,"#d7d2dc",25,"#c4bbc9",80,"#a795b7",180,"#80649a"
+            ],
+            "fill-extrusion-height":[
+              "interpolate",["linear"],["zoom"],
+              13.8,0,
+              15,["coalesce",["get","render_height"],["get","height"],8]
+            ],
+            "fill-extrusion-base":["coalesce",["get","render_min_height"],["get","min_height"],0],
+            "fill-extrusion-opacity":0.94,
+            "fill-extrusion-vertical-gradient":true
+          }
+        });
+      }catch(e){console.warn("3D building layer",e)}
+    }
+
+    function makeDistrictMarkers(){
+      districts.forEach(([name,lng,lat])=>{
+        const el=document.createElement("button");
+        el.type="button";
+        el.className="district-label"+(major.has(name)?" major":"");
+        el.textContent=name;
+        el.title=name+" 3D";
+        el.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();enterDistrict(name,lng,lat)});
+        const m=new maplibregl.Marker({element:el,anchor:"center"}).setLngLat([lng,lat]).addTo(map);
+        markers.push(m);
       });
     }
 
-    function startFallbackDive(p){
-      engineLabel.textContent='OPEN 3D';
-      modeText.textContent='3D';
-      status('Tamamen ücretsiz açık 3D harita');
-      map.flyTo({center:[p.lng,p.lat],zoom:17.4,pitch:69,bearing:25,duration:3600,curve:1.5,speed:.8,essential:true});
-      setTimeout(()=>busy=false,3600);
+    function setMarkersVisible(show){
+      markers.forEach(m=>{m.getElement().style.display=show?"block":"none"});
     }
 
-    initFallback();
+    function enterDistrict(name,lng,lat){
+      if(in3D) return;
+      in3D=true;currentName=name;
+      setMarkersVisible(false);
+      hero.classList.add("hide");
+      bottomTip.classList.add("hide");
+      districtName.textContent=name.toUpperCase();
+      districtTitle.classList.add("show");
+      controls.classList.add("show");
+      mode.textContent="3D GEZİNTİ";
+      flash.classList.remove("go");void flash.offsetWidth;flash.classList.add("go");
+
+      map.flyTo({
+        center:[lng,lat],
+        zoom:16.6,
+        pitch:67,
+        bearing:24,
+        duration:3600,
+        curve:1.42,
+        speed:.82,
+        essential:true
+      });
+    }
+
+    function goHome(){
+      in3D=false;currentName="";
+      districtTitle.classList.remove("show");
+      controls.classList.remove("show");
+      hero.classList.remove("hide");
+      bottomTip.classList.remove("hide");
+      mode.textContent="İLÇE SEÇ";
+      map.flyTo({center:HOME.center,zoom:HOME.zoom,pitch:0,bearing:0,duration:1900,essential:true});
+      setTimeout(()=>setMarkersVisible(true),1100);
+    }
+
+    document.getElementById("backBtn").addEventListener("click",goHome);
+
+    map.on("load",()=>{
+      hideBaseLabels();
+      add3DBuildings();
+      makeDistrictMarkers();
+      loadError.classList.remove("show");
+    });
+
+    let fatalTimer=setTimeout(()=>{if(!map.loaded())loadError.classList.add("show")},9000);
+    map.on("idle",()=>clearTimeout(fatalTimer));
+    map.on("error",e=>console.warn("Map error:",e&&e.error?e.error:e));
+
+    // Haritanın boş bir yerine tıklanırsa en yakın ilçeyi seç.
+    map.on("click",e=>{
+      if(in3D) return;
+      let best=null,bestD=Infinity;
+      for(const d of districts){
+        const dx=(d[1]-e.lngLat.lng)*Math.cos(e.lngLat.lat*Math.PI/180);
+        const dy=d[2]-e.lngLat.lat;
+        const dd=dx*dx+dy*dy;
+        if(dd<bestD){bestD=dd;best=d}
+      }
+      if(best)enterDistrict(best[0],best[1],best[2]);
+    });
+
+    // Masaüstünde GTA-benzeri klavye gezintisi.
+    window.addEventListener("keydown",e=>{
+      if(!in3D) return;
+      if(["INPUT","TEXTAREA"].includes(document.activeElement?.tagName)) return;
+      const key=e.key.toLowerCase();
+      if(key==="escape"){goHome();return}
+      const center=map.getCenter();
+      const bearing=map.getBearing();
+      const step=0.00055*Math.max(0.45,18-map.getZoom());
+      const rad=bearing*Math.PI/180;
+      let east=0,north=0;
+      if(key==="w"){east+=Math.sin(rad)*step;north+=Math.cos(rad)*step}
+      if(key==="s"){east-=Math.sin(rad)*step;north-=Math.cos(rad)*step}
+      if(key==="a"){east-=Math.cos(rad)*step;north+=Math.sin(rad)*step}
+      if(key==="d"){east+=Math.cos(rad)*step;north-=Math.sin(rad)*step}
+      if(east||north){map.easeTo({center:[center.lng+east,center.lat+north],duration:140});e.preventDefault()}
+      if(key==="q"){map.easeTo({bearing:bearing-10,duration:120});e.preventDefault()}
+      if(key==="e"){map.easeTo({bearing:bearing+10,duration:120});e.preventDefault()}
+    });
   </script>
 </body>
 </html>
