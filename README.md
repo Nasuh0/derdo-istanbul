@@ -47,3 +47,23 @@ Register body example:
 ```
 
 The access token is returned in JSON. The refresh token is stored only in an HttpOnly cookie.
+
+
+## First administrator
+
+Do not expose an endpoint that promotes arbitrary users to admin. After a normal account is
+registered, promote the first administrator from the trusted server shell:
+
+```bash
+pnpm --dir apps/api admin:promote -- username
+```
+
+The command invalidates that user's existing sessions so they must sign in again and receive
+the new ADMIN role.
+
+## Current platform stages
+
+- Stage 1: PostgreSQL authentication, bcrypt, JWT access/refresh sessions
+- Stage 2: Socket.IO chat, Redis presence, public/private rooms and direct messages
+- Stage 3: LiveKit WebRTC voice channels with microphone controls
+- Stage 4: Cloudinary image uploads, attachment messages, admin moderation and audit logs
