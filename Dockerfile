@@ -3,8 +3,13 @@ FROM node:24-bookworm-slim
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 ENV NODE_ENV=production
+ENV DATABASE_URL=postgresql://build:build@localhost:5432/build
 
-RUN corepack enable && corepack prepare pnpm@10.34.6 --activate
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/* \
+  && corepack enable \
+  && corepack prepare pnpm@10.34.6 --activate
 
 WORKDIR /app
 
