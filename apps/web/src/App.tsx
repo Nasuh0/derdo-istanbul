@@ -72,7 +72,13 @@ export default function App() {
     const socket = connectRealtime(getAccessToken());
     socketRef.current = socket;
 
-    socket.on("connect", () => setConnectionState("bağlı"));
+    socket.on("connect", () => {
+      setConnectionState("bağlı");
+      const current = activeRef.current;
+      if (current?.kind === "room") {
+        socket.emit("room:join", { roomId: current.room.id });
+      }
+    });
     socket.on("disconnect", () => setConnectionState("yeniden bağlanıyor"));
     socket.on("connect_error", () => setConnectionState("bağlantı hatası"));
     socket.on("auth:error", () => setConnectionState("oturum hatası"));
