@@ -6,8 +6,7 @@
   <meta name="theme-color" content="#0b0d12">
   <meta name="description" content="İstanbul ilçelerini 3D keşfet.">
   <title>İSTANBUL // 3D</title>
-  <link id="mlcss1" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.12.0/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.12.0/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="/vendor/maplibre-gl.css">
   <style>
     :root{--panel:rgba(9,10,15,.80);--line:rgba(255,255,255,.16);--text:#f7f5fb;--muted:#bbb5c4;--violet:#a66cff}
     *{box-sizing:border-box}
@@ -57,6 +56,7 @@
   <div id="gesture" class="gesture"></div>
   <div id="fatal" class="fatal"><b>Harita yüklenemedi</b><small>Harita kitaplığına erişilemedi. Sayfayı yenileyince diğer CDN otomatik olarak denenecek.</small></div>
 
+  <script src="/vendor/maplibre-gl.js"></script>
   <script>
     const DISTRICTS=[
       ["Adalar",29.05873,40.86623],["Küçükçekmece",28.78055,41.02057],["Beşiktaş",29.02411,41.07171],["Bahçelievler",28.84540,41.00980],["Beylikdüzü",28.64749,40.98784],["Bakırköy",28.83470,40.98061],["Bayrampaşa",28.90131,41.05156],["Esenyurt",28.66122,41.04891],["Avcılar",28.71915,41.03751],["Sultangazi",28.87267,41.12071],["Başakşehir",28.74510,41.10339],["Esenler",28.86718,41.06253],["Eyüpsultan",28.87314,41.16518],["Bağcılar",28.84036,41.04499],["Arnavutköy",28.65582,41.24820],["Gaziosmanpaşa",28.90677,41.07300],["Güngören",28.87997,41.01995],["Zeytinburnu",28.90967,41.00518],["Fatih",28.95356,41.01425],["Beyoğlu",28.96740,41.04337],["Sarıyer",29.02441,41.17175],["Kağıthane",28.97886,41.08060],["Şişli",28.98895,41.06194],["Üsküdar",29.04900,41.03517],["Ümraniye",29.13753,41.02721],["Beykoz",29.21482,41.13836],["Maltepe",29.15556,40.94399],["Kadıköy",29.06308,40.98114],["Ataşehir",29.13790,40.98430],["Sancaktepe",29.27454,40.99939],["Sultanbeyli",29.27833,40.96808],["Kartal",29.19679,40.91517],["Çekmeköy",29.26996,41.07275],["Tuzla",29.35558,40.89137],["Pendik",29.36102,40.95682],["Çatalca",28.33276,41.32041],["Silivri",28.18343,41.19777],["Büyükçekmece",28.51250,41.05706],["Şile",29.63961,41.08919]
@@ -66,21 +66,7 @@
     const HOME={center:[28.98,41.08],zoom:9.35,pitch:0,bearing:0};
     let map=null,markers=[],in3D=false,initDone=false;
 
-    function loadScript(url,next){
-      const s=document.createElement("script");s.src=url;s.async=true;
-      s.onload=()=>next(true);s.onerror=()=>next(false);document.head.appendChild(s);
-    }
-    function boot(){
-      if(window.maplibregl){initMap();return}
-      loadScript("https://cdn.jsdelivr.net/npm/maplibre-gl@6.12.0/dist/maplibre-gl.js",ok=>{
-        if(ok&&window.maplibregl){initMap();return}
-        loadScript("https://unpkg.com/maplibre-gl@6.12.0/dist/maplibre-gl.js",ok2=>{
-          if(ok2&&window.maplibregl)initMap();else document.getElementById("fatal").classList.add("show");
-        });
-      });
-    }
-
-    function baseStyle(){
+    function boot(){\n      if(window.maplibregl){initMap();return}\n      document.getElementById("fatal").classList.add("show");\n    }\n\n    function baseStyle(){
       return {
         version:8,
         sources:{
