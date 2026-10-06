@@ -10,6 +10,7 @@ WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml ./
 COPY apps/api/package.json apps/api/package.json
+COPY apps/api/prisma apps/api/prisma
 COPY apps/web/package.json apps/web/package.json
 
 RUN pnpm install --no-frozen-lockfile
