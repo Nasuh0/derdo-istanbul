@@ -1,14 +1,27 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { AccessToken } from "livekit-server-sdk";
+import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class VoiceService {
+  private readonly rooms: RoomServiceClient;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService
-  ) {}
+  ) {
+    const websocketUrl = config.getOrThrow<string>("LIVEKIT_URL");
+    const serviceUrl = websocketUrl
+      .replace(/^wss:\/\//, "https://")
+      .replace(/^ws:\/\//, "http://");
+
+    this.rooms = new RoomServiceClient(
+      serviceUrl,
+      config.getOrThrow<string>("LIVEKIT_API_KEY"),
+      config.getOrThrow<string>("LIVEKIT_API_SECRET")
+    );
+  }
 
   async listForUser(userId: string) {
     return this.prisma.voiceChannel.findMany({
@@ -29,6 +42,14 @@ export class VoiceService {
   }
 
   async issueJoinToken(user: { id: string; username: string }, channelId: string) {
+    const dbUser = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: { isBanned: true }
+    });
+    if (!dbUser || dbUser.isBanned) {
+      throw new ForbiddenException("Voice access denied");
+    }
+
     const channel = await this.prisma.voiceChannel.findUnique({
       where: { id: channelId },
       select: {
@@ -77,5 +98,18 @@ export class VoiceService {
       },
       expiresIn: ttl
     };
+  }
+
+  async disconnectUser(userId: string): Promise<void> {
+    const rooms = await this.rooms.listRooms();
+    const revokeTokenTs = BigInt(Math.floor(Date.now() / 1000));
+
+    await Promise.allSettled(
+      rooms
+        .filter((room) => room.name.startsWith("voice:"))
+        .map((room) =>
+          this.rooms.removeParticipant(room.name, userId, { revokeTokenTs })
+        )
+    );
   }
 }

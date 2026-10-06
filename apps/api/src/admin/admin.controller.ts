@@ -12,6 +12,7 @@ import { CurrentUser } from "../auth/current-user.decorator";
 import type { AuthenticatedUser } from "../auth/auth.types";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { RealtimeGateway } from "../realtime/realtime.gateway";
+import { VoiceService } from "../voice/voice.service";
 import { AdminGuard } from "./admin.guard";
 import { AdminService } from "./admin.service";
 import { AdminRoomDto } from "./dto/admin-room.dto";
@@ -22,7 +23,8 @@ import { BanUserDto } from "./dto/ban-user.dto";
 export class AdminController {
   constructor(
     private readonly admin: AdminService,
-    private readonly realtime: RealtimeGateway
+    private readonly realtime: RealtimeGateway,
+    private readonly voice: VoiceService
   ) {}
 
   @Get("users")
@@ -38,7 +40,10 @@ export class AdminController {
   ) {
     const user = await this.admin.setBan(actor.id, userId, dto.banned);
     if (dto.banned) {
-      await this.realtime.disconnectUser(userId);
+      await Promise.all([
+        this.realtime.disconnectUser(userId),
+        this.voice.disconnectUser(userId)
+      ]);
     }
     return user;
   }
