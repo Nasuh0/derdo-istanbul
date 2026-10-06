@@ -49,6 +49,11 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
     }, 0);
   }
 
+  async disconnectUser(userId: string): Promise<void> {
+    this.server.in(`user:${userId}`).disconnectSockets(true);
+    await this.emitPresence();
+  }
+
   @SubscribeMessage("presence:set")
   async setPresence(
     @ConnectedSocket() client: RealtimeSocket,
@@ -91,16 +96,25 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   @SubscribeMessage("message:send")
   async sendRoomMessage(
     @ConnectedSocket() client: RealtimeSocket,
-    @MessageBody() payload: { roomId?: string; content?: string }
+    @MessageBody() payload: {
+      roomId?: string;
+      content?: string;
+      attachmentIds?: string[];
+    }
   ): Promise<Ack> {
     try {
-      if (!payload?.roomId || typeof payload.content !== "string") {
-        throw new Error("roomId and content are required");
+      if (!payload?.roomId) {
+        throw new Error("roomId is required");
       }
+      if (payload.attachmentIds && !Array.isArray(payload.attachmentIds)) {
+        throw new Error("attachmentIds must be an array");
+      }
+
       const message = await this.rooms.createMessage(
         client.data.user.id,
         payload.roomId,
-        payload.content
+        typeof payload.content === "string" ? payload.content : "",
+        payload.attachmentIds ?? []
       );
       this.server.to(`room:${payload.roomId}`).emit("message:new", message);
       return { ok: true, data: message };
@@ -152,17 +166,25 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   @SubscribeMessage("dm:send")
   async sendDirectMessage(
     @ConnectedSocket() client: RealtimeSocket,
-    @MessageBody() payload: { conversationId?: string; content?: string }
+    @MessageBody() payload: {
+      conversationId?: string;
+      content?: string;
+      attachmentIds?: string[];
+    }
   ): Promise<Ack> {
     try {
-      if (!payload?.conversationId || typeof payload.content !== "string") {
-        throw new Error("conversationId and content are required");
+      if (!payload?.conversationId) {
+        throw new Error("conversationId is required");
+      }
+      if (payload.attachmentIds && !Array.isArray(payload.attachmentIds)) {
+        throw new Error("attachmentIds must be an array");
       }
 
       const result = await this.direct.createMessage(
         client.data.user.id,
         payload.conversationId,
-        payload.content
+        typeof payload.content === "string" ? payload.content : "",
+        payload.attachmentIds ?? []
       );
 
       for (const userId of result.memberIds) {

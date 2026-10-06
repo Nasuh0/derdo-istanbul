@@ -113,31 +113,79 @@ export class RoomsService {
       include: {
         author: {
           select: { id: true, username: true }
-        }
+        },
+        attachments: true
       }
     });
 
     return messages.reverse();
   }
 
-  async createMessage(userId: string, roomId: string, content: string) {
+  async createMessage(
+    userId: string,
+    roomId: string,
+    content: string,
+    attachmentIds: string[] = []
+  ) {
     await this.assertAccess(userId, roomId);
+
     const value = content.trim();
-    if (!value || value.length > 4000) {
-      throw new Error("Message must be between 1 and 4000 characters");
+    const ids = Array.from(new Set(attachmentIds.filter(Boolean))).slice(0, 10);
+    if ((!value && ids.length === 0) || value.length > 4000) {
+      throw new Error("Message must contain text or an attachment and stay under 4000 characters");
     }
 
-    return this.prisma.chatMessage.create({
-      data: {
-        roomId,
-        authorId: userId,
-        content: value
-      },
-      include: {
-        author: {
-          select: { id: true, username: true }
+    return this.prisma.$transaction(async (tx) => {
+      if (ids.length > 0) {
+        const attachments = await tx.attachment.findMany({
+          where: {
+            id: { in: ids },
+            uploaderId: userId,
+            chatMessageId: null,
+            directMessageId: null
+          },
+          select: { id: true }
+        });
+
+        if (attachments.length !== ids.length) {
+          throw new ForbiddenException("One or more attachments are invalid or already used");
         }
       }
+
+      const message = await tx.chatMessage.create({
+        data: {
+          roomId,
+          authorId: userId,
+          content: value
+        },
+        select: { id: true }
+      });
+
+      if (ids.length > 0) {
+        const claimed = await tx.attachment.updateMany({
+          where: {
+            id: { in: ids },
+            uploaderId: userId,
+            chatMessageId: null,
+            directMessageId: null
+          },
+          data: { chatMessageId: message.id }
+        });
+
+        if (claimed.count !== ids.length) {
+          throw new ForbiddenException("An attachment was claimed concurrently");
+        }
+      }
+
+      return tx.chatMessage.findUniqueOrThrow({
+        where: { id: message.id },
+        include: {
+          author: {
+            select: { id: true, username: true }
+          },
+          attachments: true
+        }
+      });
     });
   }
 }

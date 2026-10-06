@@ -53,7 +53,8 @@ export class DirectService {
           orderBy: { createdAt: "desc" },
           take: 1,
           include: {
-            author: { select: { id: true, username: true } }
+            author: { select: { id: true, username: true } },
+            attachments: true
           }
         }
       }
@@ -83,33 +84,81 @@ export class DirectService {
       orderBy: { createdAt: "desc" },
       take: Math.min(Math.max(take, 1), 100),
       include: {
-        author: { select: { id: true, username: true } }
+        author: { select: { id: true, username: true } },
+        attachments: true
       }
     });
     return messages.reverse();
   }
 
-  async createMessage(userId: string, conversationId: string, content: string) {
+  async createMessage(
+    userId: string,
+    conversationId: string,
+    content: string,
+    attachmentIds: string[] = []
+  ) {
     const conversation = await this.assertMember(userId, conversationId);
     const value = content.trim();
-    if (!value || value.length > 4000) {
-      throw new Error("Message must be between 1 and 4000 characters");
+    const ids = Array.from(new Set(attachmentIds.filter(Boolean))).slice(0, 10);
+
+    if ((!value && ids.length === 0) || value.length > 4000) {
+      throw new Error("Message must contain text or an attachment and stay under 4000 characters");
     }
 
-    const message = await this.prisma.directMessage.create({
-      data: {
-        conversationId,
-        authorId: userId,
-        content: value
-      },
-      include: {
-        author: { select: { id: true, username: true } }
-      }
-    });
+    const message = await this.prisma.$transaction(async (tx) => {
+      if (ids.length > 0) {
+        const attachments = await tx.attachment.findMany({
+          where: {
+            id: { in: ids },
+            uploaderId: userId,
+            chatMessageId: null,
+            directMessageId: null
+          },
+          select: { id: true }
+        });
 
-    await this.prisma.directConversation.update({
-      where: { id: conversationId },
-      data: { updatedAt: new Date() }
+        if (attachments.length !== ids.length) {
+          throw new ForbiddenException("One or more attachments are invalid or already used");
+        }
+      }
+
+      const created = await tx.directMessage.create({
+        data: {
+          conversationId,
+          authorId: userId,
+          content: value
+        },
+        select: { id: true }
+      });
+
+      if (ids.length > 0) {
+        const claimed = await tx.attachment.updateMany({
+          where: {
+            id: { in: ids },
+            uploaderId: userId,
+            chatMessageId: null,
+            directMessageId: null
+          },
+          data: { directMessageId: created.id }
+        });
+
+        if (claimed.count !== ids.length) {
+          throw new ForbiddenException("An attachment was claimed concurrently");
+        }
+      }
+
+      await tx.directConversation.update({
+        where: { id: conversationId },
+        data: { updatedAt: new Date() }
+      });
+
+      return tx.directMessage.findUniqueOrThrow({
+        where: { id: created.id },
+        include: {
+          author: { select: { id: true, username: true } },
+          attachments: true
+        }
+      });
     });
 
     return {
