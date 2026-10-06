@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
@@ -21,21 +21,22 @@ export class AuthService {
     const username = this.normalizeUsername(dto.username);
     this.assertBcryptPasswordSize(dto.password);
 
-    const existing = await this.prisma.user.findUnique({ where: { username } });
-    if (existing) {
-      throw new ConflictException("Username is already in use");
-    }
-
     const passwordHash = await bcrypt.hash(
       dto.password,
       this.config.get<number>("BCRYPT_ROUNDS", 12)
     );
 
-    const user = await this.prisma.user.create({
-      data: { username, passwordHash }
-    });
-
-    return this.createSession(user);
+    try {
+      const user = await this.prisma.user.create({
+        data: { username, passwordHash }
+      });
+      return this.createSession(user);
+    } catch (error) {
+      if ((error as { code?: string }).code === "P2002") {
+        throw new ConflictException("Username is already in use");
+      }
+      throw error;
+    }
   }
 
   async login(dto: LoginDto) {
@@ -79,6 +80,8 @@ export class AuthService {
     }
 
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+    const presentedHash = this.hashToken(refreshToken);
+
     if (
       !user ||
       user.isBanned ||
@@ -87,6 +90,19 @@ export class AuthService {
       !this.safeHashEquals(refreshToken, user.refreshTokenHash)
     ) {
       throw new UnauthorizedException("Refresh session is no longer valid");
+    }
+
+    const consumed = await this.prisma.user.updateMany({
+      where: {
+        id: user.id,
+        tokenVersion: user.tokenVersion,
+        refreshTokenHash: presentedHash
+      },
+      data: { refreshTokenHash: null }
+    });
+
+    if (consumed.count !== 1) {
+      throw new UnauthorizedException("Refresh token was already used");
     }
 
     return this.createSession(user);
@@ -182,7 +198,7 @@ export class AuthService {
 
   private assertBcryptPasswordSize(password: string): void {
     if (Buffer.byteLength(password, "utf8") > 72) {
-      throw new UnauthorizedException("Password is too long for bcrypt");
+      throw new BadRequestException("Password exceeds bcrypt's 72-byte limit");
     }
   }
 
