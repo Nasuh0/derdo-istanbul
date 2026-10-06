@@ -2,7 +2,7 @@ import { INestApplicationContext } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { IoAdapter } from "@nestjs/platform-socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
-import type { ServerOptions } from "socket.io";
+import type { Server, ServerOptions } from "socket.io";
 import { RedisService } from "../redis/redis.service";
 
 export class RedisIoAdapter extends IoAdapter {
@@ -14,7 +14,7 @@ export class RedisIoAdapter extends IoAdapter {
     super(app);
   }
 
-  override createIOServer(port: number, options?: ServerOptions): unknown {
+  override createIOServer(port: number, options?: ServerOptions): Server {
     const origins = this.config
       .get<string>("CORS_ORIGINS", "http://localhost:5173")
       .split(",")
