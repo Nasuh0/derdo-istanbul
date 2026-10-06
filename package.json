@@ -1,0 +1,10 @@
+{
+  "name": "derdo-istanbul",
+  "private": true,
+  "scripts": {
+    "dev:api": "pnpm --dir apps/api dev",
+    "build:api": "pnpm --dir apps/api build",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down"
+  }
+}
