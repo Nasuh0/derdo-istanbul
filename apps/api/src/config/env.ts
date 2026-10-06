@@ -8,11 +8,15 @@ function positiveInt(value: unknown, fallback: number, name: string): number {
 
 export function validateEnv(raw: Record<string, unknown>) {
   const databaseUrl = String(raw.DATABASE_URL ?? "");
+  const redisUrl = String(raw.REDIS_URL ?? "");
   const accessSecret = String(raw.JWT_ACCESS_SECRET ?? "");
   const refreshSecret = String(raw.JWT_REFRESH_SECRET ?? "");
 
   if (!databaseUrl.startsWith("postgresql://") && !databaseUrl.startsWith("postgres://")) {
     throw new Error("DATABASE_URL must be a PostgreSQL connection string");
+  }
+  if (!redisUrl.startsWith("redis://") && !redisUrl.startsWith("rediss://")) {
+    throw new Error("REDIS_URL must be a Redis connection string");
   }
   if (accessSecret.length < 32 || refreshSecret.length < 32) {
     throw new Error("JWT secrets must each be at least 32 characters long");
@@ -42,6 +46,7 @@ export function validateEnv(raw: Record<string, unknown>) {
   return {
     ...raw,
     DATABASE_URL: databaseUrl,
+    REDIS_URL: redisUrl,
     PORT: positiveInt(raw.PORT, 3000, "PORT"),
     JWT_ACCESS_SECRET: accessSecret,
     JWT_REFRESH_SECRET: refreshSecret,

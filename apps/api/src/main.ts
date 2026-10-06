@@ -5,14 +5,20 @@ import { NestFactory } from "@nestjs/core";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
+import { RedisIoAdapter } from "./realtime/redis-io.adapter";
+import { RedisService } from "./redis/redis.service";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const config = app.get(ConfigService);
+  const redis = app.get(RedisService);
 
   if (config.get<string>("TRUST_PROXY", "false") === "true") {
     app.getHttpAdapter().getInstance().set("trust proxy", 1);
   }
+
+  await redis.connect();
+  app.useWebSocketAdapter(new RedisIoAdapter(app, redis, config));
 
   app.use(helmet());
   app.use(cookieParser());
@@ -27,6 +33,7 @@ async function bootstrap() {
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
   });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

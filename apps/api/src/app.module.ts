@@ -4,8 +4,13 @@ import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { AuthModule } from "./auth/auth.module";
 import { validateEnv } from "./config/env";
+import { DirectModule } from "./direct/direct.module";
 import { HealthController } from "./health.controller";
 import { PrismaModule } from "./prisma/prisma.module";
+import { RealtimeModule } from "./realtime/realtime.module";
+import { RedisModule } from "./redis/redis.module";
+import { RoomsModule } from "./rooms/rooms.module";
+import { UsersModule } from "./users/users.module";
 
 @Module({
   imports: [
@@ -21,7 +26,12 @@ import { PrismaModule } from "./prisma/prisma.module";
       }
     ]),
     PrismaModule,
-    AuthModule
+    RedisModule,
+    AuthModule,
+    UsersModule,
+    RoomsModule,
+    DirectModule,
+    RealtimeModule
   ],
   controllers: [HealthController],
   providers: [
