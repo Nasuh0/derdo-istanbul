@@ -11,6 +11,7 @@ import { RealtimeModule } from "./realtime/realtime.module";
 import { RedisModule } from "./redis/redis.module";
 import { RoomsModule } from "./rooms/rooms.module";
 import { UsersModule } from "./users/users.module";
+import { VoiceModule } from "./voice/voice.module";
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { UsersModule } from "./users/users.module";
     UsersModule,
     RoomsModule,
     DirectModule,
-    RealtimeModule
+    RealtimeModule,
+    VoiceModule
   ],
   controllers: [HealthController],
   providers: [

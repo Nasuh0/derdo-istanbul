@@ -35,11 +35,12 @@ model User {
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
-  createdRooms  ChatRoom[] @relation("RoomCreator")
-  roomMemberships ChatRoomMember[]
-  messages      ChatMessage[]
-  dmMemberships DirectConversationMember[]
-  directMessages DirectMessage[]
+  createdRooms       ChatRoom[] @relation("RoomCreator")
+  roomMemberships    ChatRoomMember[]
+  messages           ChatMessage[]
+  dmMemberships      DirectConversationMember[]
+  directMessages     DirectMessage[]
+  voiceMemberships   VoiceChannelMember[]
 
   @@map("users")
 }
@@ -130,4 +131,31 @@ model DirectMessage {
   @@index([conversationId, createdAt])
   @@index([authorId])
   @@map("direct_messages")
+}
+
+model VoiceChannel {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(64)
+  slug      String   @unique @db.VarChar(64)
+  type      RoomType @default(PUBLIC)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  members VoiceChannelMember[]
+
+  @@index([type])
+  @@map("voice_channels")
+}
+
+model VoiceChannelMember {
+  channelId String   @map("channel_id")
+  userId    String   @map("user_id")
+  joinedAt  DateTime @default(now()) @map("joined_at")
+
+  channel VoiceChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([channelId, userId])
+  @@index([userId])
+  @@map("voice_channel_members")
 }
