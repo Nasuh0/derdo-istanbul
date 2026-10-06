@@ -1,154 +1,321 @@
 <!doctype html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <meta name="theme-color" content="#0b0d12">
-  <meta name="description" content="İstanbul ilçelerini 3D keşfet.">
-  <title>İSTANBUL // 3D</title>
-  <link rel="stylesheet" href="/vendor/maplibre-gl.css">
-  <style>
-    :root{--panel:rgba(9,10,15,.80);--line:rgba(255,255,255,.16);--text:#f7f5fb;--muted:#bbb5c4;--violet:#a66cff}
-    *{box-sizing:border-box}
-    html,body,#map{width:100%;height:100%;margin:0}
-    html,body{overflow:hidden;background:#0b0d12;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
-    #map{position:fixed;inset:0;background:#b9c2ca}
-    .maplibregl-canvas{outline:none}
-    .maplibregl-ctrl-group{background:rgba(10,10,15,.88)!important;border:1px solid var(--line)!important;box-shadow:0 8px 28px rgba(0,0,0,.22)!important}
-    .maplibregl-ctrl button{filter:invert(1);opacity:.86}
-    .maplibregl-ctrl-attrib{font-size:9px!important;background:rgba(255,255,255,.88)!important}
-    .vignette{position:fixed;inset:0;z-index:3;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.22),transparent 18%,transparent 78%,rgba(0,0,0,.22))}
-    .topbar{position:fixed;left:18px;right:18px;top:16px;z-index:20;display:flex;justify-content:space-between;pointer-events:none}
-    .brand,.mode{pointer-events:auto;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(12px);border-radius:11px;box-shadow:0 10px 30px rgba(0,0,0,.22)}
-    .brand{padding:11px 14px}.brand strong{display:block;font-size:13px;letter-spacing:.2em}.brand small{display:block;margin-top:4px;color:var(--muted);font:600 9px/1 ui-monospace,monospace;letter-spacing:.1em}
-    .mode{padding:10px 12px;color:#d1cbd8;font:600 9px/1 ui-monospace,monospace;letter-spacing:.1em}.mode i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--violet);box-shadow:0 0 12px var(--violet);margin-right:7px}
-    .hero{position:fixed;z-index:12;left:50%;top:14%;transform:translateX(-50%);text-align:center;pointer-events:none;transition:.35s;text-shadow:0 3px 20px rgba(0,0,0,.75)}
-    .hero.hide{opacity:0;transform:translate(-50%,-10px)}.hero h1{margin:0;font-size:clamp(34px,5vw,68px);letter-spacing:.15em}.hero p{margin:7px 0 0;font-size:11px;color:#f0ebf4}
-    .district-label{border:1px solid rgba(255,255,255,.32);background:rgba(12,12,17,.78);backdrop-filter:blur(6px);color:#fff;border-radius:999px;padding:5px 8px;font:700 9px/1 system-ui,sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.28);transition:.16s;user-select:none}
-    .district-label:hover,.district-label:focus{transform:scale(1.06);background:rgba(76,45,112,.92);border-color:#c7a2ff;outline:none}.district-label.major{font-size:10px;padding:6px 9px;border-color:rgba(203,166,255,.65)}
-    .district-title{position:fixed;left:50%;top:20px;transform:translateX(-50%);z-index:22;opacity:0;pointer-events:none;text-align:center;transition:.3s;text-shadow:0 4px 22px #000}
-    .district-title.show{opacity:1}.district-title b{display:block;font-size:clamp(24px,4vw,48px);letter-spacing:.13em}.district-title span{font:600 9px/1 ui-monospace,monospace;color:#ddd4e8;letter-spacing:.13em}
-    .back{position:fixed;left:18px;bottom:18px;z-index:25;display:none;border:1px solid rgba(192,149,255,.6);background:rgba(54,33,78,.88);backdrop-filter:blur(10px);color:#fff;border-radius:10px;padding:11px 13px;font-weight:750;font-size:10px;cursor:pointer}.back.show{display:block}
-    .tip{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:20;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(12px);border-radius:999px;padding:10px 14px;font-size:10px;white-space:nowrap;box-shadow:0 8px 28px rgba(0,0,0,.25);transition:.3s}.tip.hide{opacity:0;pointer-events:none;transform:translate(-50%,10px)}
-    .tip i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--violet);box-shadow:0 0 12px var(--violet);margin-right:8px}
-    .gesture{position:fixed;right:18px;bottom:18px;z-index:24;display:none;max-width:310px;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(12px);border-radius:11px;padding:10px 12px;color:#e7e1eb;font-size:9px;line-height:1.55}.gesture.show{display:block}
-    .flash{position:fixed;inset:0;z-index:40;background:#fff;opacity:0;pointer-events:none}.flash.go{animation:flash .8s ease}@keyframes flash{0%,48%{opacity:0}58%{opacity:.14}68%{opacity:0}100%{opacity:0}}
-    .fatal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;display:none;width:min(520px,88vw);padding:18px;border-radius:13px;background:rgba(24,13,17,.94);border:1px solid rgba(255,100,120,.42);text-align:center}.fatal.show{display:block}.fatal b{display:block;margin-bottom:6px}.fatal small{color:#d0c5cb;line-height:1.45}
-    @media(max-width:720px){
-      .topbar{left:10px;right:10px;top:10px}.brand{padding:9px 11px}.brand strong{font-size:11px}.brand small{font-size:8px}.mode{padding:9px 10px}
-      .hero{top:12%}.hero h1{font-size:34px}.hero p{font-size:9px}.district-label{font-size:8px;padding:4px 6px}.district-label.major{font-size:9px}
-      .tip{bottom:12px;max-width:92vw;font-size:9px}.back{left:10px;bottom:10px}.gesture{left:10px;right:10px;bottom:56px;max-width:none;text-align:center}
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#080a10">
+<title>İSTANBUL // 3D</title>
+<style>
+:root{
+  --bg:#080a10;--panel:rgba(10,12,18,.82);--line:rgba(255,255,255,.14);
+  --text:#f7f7fb;--muted:#a8a7b1;--purple:#a86cff;--purple2:#6f42c1;--cyan:#72d8ff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+button{font:inherit}
+.screen{position:fixed;inset:0}
+.hidden{display:none!important}
+
+/* SELECT */
+#selectScreen{background:
+  radial-gradient(circle at 50% 42%,rgba(117,76,191,.16),transparent 38%),
+  linear-gradient(180deg,#0a0c12 0%,#090b10 55%,#07080c 100%);
+}
+.topbar{position:absolute;z-index:20;left:18px;right:18px;top:16px;display:flex;justify-content:space-between;pointer-events:none}
+.card{pointer-events:auto;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(14px);border-radius:12px;box-shadow:0 14px 36px rgba(0,0,0,.24)}
+.brand{padding:11px 14px}.brand strong{display:block;font-size:13px;letter-spacing:.2em}.brand small{display:block;margin-top:4px;color:var(--muted);font:600 8px/1 ui-monospace,monospace;letter-spacing:.12em}
+.mode{padding:10px 12px;font:700 9px/1 ui-monospace,monospace;letter-spacing:.1em;color:#d8d2df}.mode i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--purple);box-shadow:0 0 14px var(--purple);margin-right:7px}
+.hero{position:absolute;z-index:8;left:50%;top:9%;transform:translateX(-50%);text-align:center;pointer-events:none}
+.hero h1{margin:0;font-size:clamp(36px,6vw,80px);letter-spacing:.16em;text-shadow:0 5px 28px rgba(0,0,0,.55)}
+.hero p{margin:7px 0 0;color:#d6d3db;font-size:11px;letter-spacing:.04em}
+.map-shell{position:absolute;left:50%;top:53%;transform:translate(-50%,-50%);width:min(1280px,96vw);height:min(630px,74vh);border:1px solid rgba(255,255,255,.10);border-radius:24px;background:
+  radial-gradient(circle at 55% 45%,rgba(168,108,255,.08),transparent 30%),
+  linear-gradient(180deg,#11151d,#0c0f15);
+  box-shadow:0 30px 100px rgba(0,0,0,.34),inset 0 0 80px rgba(0,0,0,.22);overflow:hidden
+}
+.map-shell:before{content:"";position:absolute;inset:0;background:
+  linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none
+}
+.sea{position:absolute;inset:0;background:
+  radial-gradient(ellipse at 55% 54%,rgba(80,116,150,.16),transparent 28%),
+  linear-gradient(180deg,rgba(18,24,33,.52),rgba(8,12,18,.75));pointer-events:none}
+.land{position:absolute;filter:drop-shadow(0 0 26px rgba(145,93,229,.18))}
+.land svg{width:100%;height:100%}
+.land path{fill:#151822;stroke:#8d62d1;stroke-width:1.4;vector-effect:non-scaling-stroke}
+.land.europe{left:3%;top:17%;width:67%;height:45%}
+.land.asia{left:48%;top:48%;width:49%;height:34%}
+.bosphorus{position:absolute;left:52%;top:28%;width:12%;height:42%;border-left:2px solid rgba(121,204,255,.35);border-right:1px solid rgba(121,204,255,.16);transform:rotate(8deg);filter:blur(.1px);opacity:.8}
+.bridge{position:absolute;height:1px;background:linear-gradient(90deg,transparent,#bfa9e8,transparent);opacity:.5;transform-origin:center}
+.bridge.b1{left:51%;top:43%;width:12%;transform:rotate(-8deg)}
+.bridge.b2{left:52%;top:50%;width:11%;transform:rotate(-6deg)}
+.bridge.b3{left:53%;top:57%;width:10%;transform:rotate(-5deg)}
+.district{position:absolute;z-index:5;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.20);background:rgba(9,10,15,.86);color:#fff;border-radius:999px;padding:5px 8px;font:750 clamp(7px,.65vw,10px)/1 system-ui,sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 5px 18px rgba(0,0,0,.28);transition:.16s}
+.district:hover,.district:focus{transform:translate(-50%,-50%) scale(1.08);background:rgba(75,45,110,.96);border-color:#c5a2ff;outline:none;z-index:20}
+.district.major{border-color:rgba(196,157,255,.65);font-size:clamp(8px,.75vw,11px);padding:6px 9px}
+.map-label{position:absolute;z-index:4;left:50%;top:52%;transform:translate(-50%,-50%);font-size:clamp(48px,9vw,132px);font-weight:800;letter-spacing:.14em;color:rgba(255,255,255,.035);pointer-events:none;white-space:nowrap}
+.tip{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:10;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(12px);border-radius:999px;padding:10px 14px;font-size:10px;color:#eeeaf2;box-shadow:0 10px 30px rgba(0,0,0,.24);white-space:nowrap}
+.tip i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--purple);box-shadow:0 0 12px var(--purple);margin-right:8px}
+
+/* 3D */
+#sceneScreen{background:#07090e}
+#cityCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}
+#cityCanvas:active{cursor:grabbing}
+.sceneShade{position:absolute;inset:0;pointer-events:none;background:
+  radial-gradient(circle at 50% 46%,transparent 38%,rgba(0,0,0,.16) 75%,rgba(0,0,0,.48) 120%),
+  linear-gradient(180deg,rgba(0,0,0,.28),transparent 20%,transparent 76%,rgba(0,0,0,.24))}
+.sceneHud{position:absolute;z-index:10;left:18px;right:18px;top:16px;display:flex;justify-content:space-between;pointer-events:none}
+.sceneHud .card{pointer-events:auto}
+.districtTitle{padding:12px 14px}.districtTitle strong{display:block;font-size:14px;letter-spacing:.18em}.districtTitle small{display:block;margin-top:4px;color:var(--muted);font:650 8px/1 ui-monospace,monospace;letter-spacing:.13em}
+.back{padding:10px 12px;color:white;border:1px solid rgba(194,157,255,.55);background:rgba(63,38,89,.88);border-radius:10px;cursor:pointer;font-weight:800;font-size:10px}
+.back:hover{background:rgba(84,49,120,.95)}
+.gesture{position:absolute;z-index:10;left:50%;bottom:18px;transform:translateX(-50%);border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(12px);border-radius:999px;padding:10px 14px;font-size:10px;color:#e9e5ed;white-space:nowrap}
+.flash{position:absolute;inset:0;z-index:30;background:#fff;pointer-events:none;opacity:0}
+.flash.go{animation:flash .85s ease}@keyframes flash{0%,46%{opacity:0}56%{opacity:.15}66%{opacity:0}100%{opacity:0}}
+
+@media(max-width:760px){
+  .topbar,.sceneHud{left:10px;right:10px;top:10px}
+  .brand{padding:9px 11px}.brand strong{font-size:11px}.brand small{font-size:7px}.mode{padding:9px 10px}
+  .hero{top:8%}.hero h1{font-size:35px}.hero p{font-size:9px}
+  .map-shell{width:98vw;height:76vh;border-radius:18px}
+  .district{font-size:7px;padding:4px 6px}.district.major{font-size:8px;padding:5px 7px}
+  .tip{bottom:10px;max-width:92vw;font-size:9px;overflow:hidden;text-overflow:ellipsis}
+  .gesture{bottom:10px;max-width:94vw;font-size:9px;overflow:hidden;text-overflow:ellipsis}
+  .districtTitle{padding:10px 12px}.districtTitle strong{font-size:12px}
+}
+</style>
 </head>
 <body>
-  <div id="map"></div>
-  <div class="vignette"></div>
-  <div class="flash" id="flash"></div>
+<section id="selectScreen" class="screen">
   <div class="topbar">
-    <div class="brand"><strong>İSTANBUL</strong><small>39 İLÇE // 3D</small></div>
-    <div class="mode"><i></i><span id="mode">İLÇE SEÇ</span></div>
+    <div class="brand card"><strong>İSTANBUL</strong><small>39 İLÇE // INTERACTIVE 3D</small></div>
+    <div class="mode card"><i></i>İLÇE SEÇ</div>
   </div>
-  <div class="hero" id="hero"><h1>İSTANBUL</h1><p>İlçe adına dokun, 3D olarak yaklaş</p></div>
-  <div class="district-title" id="districtTitle"><b id="districtName"></b><span>İSTANBUL // 3D GEZİNTİ</span></div>
-  <button id="backBtn" class="back">← İSTANBUL'A DÖN</button>
-  <div id="tip" class="tip"><i></i>Avcılar, Üsküdar, Esenyurt, Kadıköy... ilçe adına bas</div>
-  <div id="gesture" class="gesture"></div>
-  <div id="fatal" class="fatal"><b>Harita yüklenemedi</b><small>Harita kitaplığına erişilemedi. Sayfayı yenileyince diğer CDN otomatik olarak denenecek.</small></div>
+  <div class="hero"><h1>İSTANBUL</h1><p>Bir ilçe adına dokun ve 3D sahneye in</p></div>
+  <div class="map-shell" id="mapShell">
+    <div class="sea"></div>
+    <div class="land europe"><svg viewBox="0 0 1000 480" preserveAspectRatio="none"><path d="M20 290 C80 245 130 220 205 215 C280 210 337 232 405 226 C474 219 523 182 590 182 C651 182 697 206 749 210 C814 214 882 198 980 228 L965 290 C891 274 827 280 759 290 C699 299 650 302 591 286 C536 270 495 260 438 273 C369 289 311 318 239 321 C158 324 91 313 20 290 Z"/></svg></div>
+    <div class="land asia"><svg viewBox="0 0 1000 420" preserveAspectRatio="none"><path d="M10 140 C77 110 148 104 214 116 C279 128 331 157 392 160 C454 163 511 140 575 144 C650 149 704 184 764 198 C830 214 890 210 990 186 L970 255 C894 277 821 286 749 278 C677 270 628 245 565 239 C503 234 452 249 391 260 C316 274 255 272 191 248 C127 223 69 193 10 140 Z"/></svg></div>
+    <div class="bosphorus"></div><div class="bridge b1"></div><div class="bridge b2"></div><div class="bridge b3"></div>
+    <div class="map-label">İSTANBUL</div>
+  </div>
+  <div class="tip"><i></i>Avcılar, Üsküdar, Esenyurt, Kadıköy... ilçe adına bas</div>
+</section>
 
-  <script src="/vendor/maplibre-gl.js"></script>
-  <script>
-    const DISTRICTS=[
-      ["Adalar",29.05873,40.86623],["Küçükçekmece",28.78055,41.02057],["Beşiktaş",29.02411,41.07171],["Bahçelievler",28.84540,41.00980],["Beylikdüzü",28.64749,40.98784],["Bakırköy",28.83470,40.98061],["Bayrampaşa",28.90131,41.05156],["Esenyurt",28.66122,41.04891],["Avcılar",28.71915,41.03751],["Sultangazi",28.87267,41.12071],["Başakşehir",28.74510,41.10339],["Esenler",28.86718,41.06253],["Eyüpsultan",28.87314,41.16518],["Bağcılar",28.84036,41.04499],["Arnavutköy",28.65582,41.24820],["Gaziosmanpaşa",28.90677,41.07300],["Güngören",28.87997,41.01995],["Zeytinburnu",28.90967,41.00518],["Fatih",28.95356,41.01425],["Beyoğlu",28.96740,41.04337],["Sarıyer",29.02441,41.17175],["Kağıthane",28.97886,41.08060],["Şişli",28.98895,41.06194],["Üsküdar",29.04900,41.03517],["Ümraniye",29.13753,41.02721],["Beykoz",29.21482,41.13836],["Maltepe",29.15556,40.94399],["Kadıköy",29.06308,40.98114],["Ataşehir",29.13790,40.98430],["Sancaktepe",29.27454,40.99939],["Sultanbeyli",29.27833,40.96808],["Kartal",29.19679,40.91517],["Çekmeköy",29.26996,41.07275],["Tuzla",29.35558,40.89137],["Pendik",29.36102,40.95682],["Çatalca",28.33276,41.32041],["Silivri",28.18343,41.19777],["Büyükçekmece",28.51250,41.05706],["Şile",29.63961,41.08919]
-    ];
-    const MAJOR=new Set(["Avcılar","Esenyurt","Küçükçekmece","Üsküdar","Kadıköy","Beşiktaş","Fatih","Beyoğlu","Şişli","Bakırköy","Beylikdüzü"]);
-    const BOUNDS=[[27.78,40.72],[30.05,41.55]];
-    const HOME={center:[28.98,41.08],zoom:9.35,pitch:0,bearing:0};
-    let map=null,markers=[],in3D=false,initDone=false;
+<section id="sceneScreen" class="screen hidden">
+  <canvas id="cityCanvas"></canvas>
+  <div class="sceneShade"></div>
+  <div class="flash" id="flash"></div>
+  <div class="sceneHud">
+    <div class="districtTitle card"><strong id="districtName">AVCILAR</strong><small>İSTANBUL // 3D GEZİNTİ</small></div>
+    <button id="backBtn" class="back card">← İSTANBUL'A DÖN</button>
+  </div>
+  <div id="gesture" class="gesture">Sürükle: etrafa bak • Tekerlek / iki parmak: yakınlaş</div>
+</section>
 
-    function boot(){\n      if(window.maplibregl){initMap();return}\n      document.getElementById("fatal").classList.add("show");\n    }\n\n    function baseStyle(){
-      return {
-        version:8,
-        sources:{
-          osm:{
-            type:"raster",
-            tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-            tileSize:256,
-            attribution:"© OpenStreetMap contributors"
-          }
-        },
-        layers:[
-          {id:"osm-base",type:"raster",source:"osm",minzoom:0,maxzoom:19}
-        ]
-      };
+<script>
+const DISTRICTS=[
+["Adalar",29.05873,40.86623],["Küçükçekmece",28.78055,41.02057],["Beşiktaş",29.02411,41.07171],["Bahçelievler",28.8454,41.0098],["Beylikdüzü",28.64749,40.98784],["Bakırköy",28.8347,40.98061],["Bayrampaşa",28.90131,41.05156],["Esenyurt",28.66122,41.04891],["Avcılar",28.71915,41.03751],["Sultangazi",28.87267,41.12071],["Başakşehir",28.7451,41.10339],["Esenler",28.86718,41.06253],["Eyüpsultan",28.87314,41.16518],["Bağcılar",28.84036,41.04499],["Arnavutköy",28.65582,41.2482],["Gaziosmanpaşa",28.90677,41.073],["Güngören",28.87997,41.01995],["Zeytinburnu",28.90967,41.00518],["Fatih",28.95356,41.01425],["Beyoğlu",28.9674,41.04337],["Sarıyer",29.02441,41.17175],["Kağıthane",28.97886,41.0806],["Şişli",28.98895,41.06194],["Üsküdar",29.049,41.03517],["Ümraniye",29.13753,41.02721],["Beykoz",29.21482,41.13836],["Maltepe",29.15556,40.94399],["Kadıköy",29.06308,40.98114],["Ataşehir",29.1379,40.9843],["Sancaktepe",29.27454,40.99939],["Sultanbeyli",29.27833,40.96808],["Kartal",29.19679,40.91517],["Çekmeköy",29.26996,41.07275],["Tuzla",29.35558,40.89137],["Pendik",29.36102,40.95682],["Çatalca",28.33276,41.32041],["Silivri",28.18343,41.19777],["Büyükçekmece",28.5125,41.05706],["Şile",29.63961,41.08919]
+];
+const MAJOR=new Set(["Avcılar","Esenyurt","Küçükçekmece","Üsküdar","Kadıköy","Beşiktaş","Fatih","Beyoğlu","Şişli","Bakırköy","Beylikdüzü"]);
+const B={w:27.78,e:30.05,s:40.72,n:41.55};
+const mapShell=document.getElementById("mapShell");
+
+function placeDistricts(){
+  DISTRICTS.forEach(([name,lng,lat])=>{
+    const x=4+(lng-B.w)/(B.e-B.w)*92;
+    const y=10+(B.n-lat)/(B.n-B.s)*80;
+    const b=document.createElement("button");
+    b.className="district"+(MAJOR.has(name)?" major":"");
+    b.textContent=name;b.style.left=x+"%";b.style.top=y+"%";
+    b.addEventListener("click",()=>openDistrict(name));
+    mapShell.appendChild(b);
+  });
+}
+placeDistricts();
+
+const selectScreen=document.getElementById("selectScreen");
+const sceneScreen=document.getElementById("sceneScreen");
+const canvas=document.getElementById("cityCanvas");
+const ctx=canvas.getContext("2d",{alpha:false});
+const districtName=document.getElementById("districtName");
+const flash=document.getElementById("flash");
+const gesture=document.getElementById("gesture");
+let buildings=[],roads=[],yaw=.62,pitch=.76,dist=900,targetX=0,targetZ=0,drag=false,lastX=0,lastY=0,lastPinch=0,anim=0,current="";
+
+function hash(str){
+  let h=2166136261>>>0;
+  for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}
+  return h>>>0;
+}
+function rng(seed){let s=seed>>>0;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}}
+function buildDistrict(name){
+  const r=rng(hash(name));buildings=[];roads=[];
+  const grid=9,spacing=74;
+  for(let gx=-grid;gx<=grid;gx++){
+    roads.push({x1:gx*spacing-9,z1:-grid*spacing-70,x2:gx*spacing+9,z2:grid*spacing+70});
+    roads.push({x1:-grid*spacing-70,z1:gx*spacing-9,x2:grid*spacing+70,z2:gx*spacing+9});
+  }
+  for(let x=-grid;x<grid;x++)for(let z=-grid;z<grid;z++){
+    if(r()<.12)continue;
+    const px=(x+.5)*spacing+(r()-.5)*18,pz=(z+.5)*spacing+(r()-.5)*18;
+    const w=28+r()*26,d=28+r()*26;
+    let h=28+r()*78;
+    if(r()<.08)h=120+r()*120;
+    if(["Şişli","Beşiktaş","Ataşehir","Üsküdar","Kadıköy"].includes(name)&&r()<.11)h=130+r()*180;
+    buildings.push({x:px,z:pz,w,d,h,t:r()});
+  }
+  // recognizable central cluster
+  for(let i=0;i<10;i++){
+    const a=i/10*Math.PI*2,rr=90+r()*80;
+    buildings.push({x:Math.cos(a)*rr,z:Math.sin(a)*rr,w:38+r()*20,d:38+r()*20,h:90+r()*160,t:r()});
+  }
+}
+
+function resize(){
+  const dpr=Math.min(devicePixelRatio||1,2);
+  const w=innerWidth,h=innerHeight;
+  canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+  canvas.style.width=w+"px";canvas.style.height=h+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+addEventListener("resize",resize);resize();
+
+function transform(p){
+  const x=p.x-targetX,z=p.z-targetZ,y=p.y;
+  const cy=Math.cos(yaw),sy=Math.sin(yaw);
+  const x1=cy*x-sy*z,z1=sy*x+cy*z;
+  const cp=Math.cos(pitch),sp=Math.sin(pitch);
+  const y2=cp*y-sp*z1,z2=sp*y+cp*z1;
+  return{x:x1,y:y2,z:z2};
+}
+function project(p){
+  const t=transform(p),f=Math.min(innerWidth,innerHeight)*1.15,den=t.z+dist;
+  return{x:innerWidth/2+t.x*f/den,y:innerHeight*.58-t.y*f/den,z:den};
+}
+function poly(points,fill,stroke){
+  ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);
+  for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);
+  ctx.closePath();ctx.fillStyle=fill;ctx.fill();
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=.7;ctx.stroke()}
+}
+function drawGround(){
+  ctx.fillStyle="#0b0f15";ctx.fillRect(0,0,innerWidth,innerHeight);
+  const sky=ctx.createLinearGradient(0,0,0,innerHeight);
+  sky.addColorStop(0,"#111824");sky.addColorStop(.48,"#0b1018");sky.addColorStop(1,"#080b10");
+  ctx.fillStyle=sky;ctx.fillRect(0,0,innerWidth,innerHeight);
+  // ground plane
+  const size=900;
+  const pts=[project({x:-size,y:0,z:-size}),project({x:size,y:0,z:-size}),project({x:size,y:0,z:size}),project({x:-size,y:0,z:size})];
+  poly(pts,"#141820");
+  // subtle coast/water strip
+  const water=[project({x:-950,y:-1,z:470}),project({x:950,y:-1,z:470}),project({x:950,y:-1,z:900}),project({x:-950,y:-1,z:900})];
+  poly(water,"#101d28");
+  // roads
+  ctx.strokeStyle="rgba(180,190,205,.13)";ctx.lineWidth=5;
+  for(const r of roads){
+    const a=project({x:r.x1,y:.2,z:r.z1}),b=project({x:r.x2,y:.2,z:r.z2});
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+  }
+}
+function boxFaces(b){
+  const x=b.x,z=b.z,w=b.w/2,d=b.d/2,h=b.h;
+  const p={
+    a:{x:x-w,y:0,z:z-d},b:{x:x+w,y:0,z:z-d},c:{x:x+w,y:0,z:z+d},d:{x:x-w,y:0,z:z+d},
+    A:{x:x-w,y:h,z:z-d},B:{x:x+w,y:h,z:z-d},C:{x:x+w,y:h,z:z+d},D:{x:x-w,y:h,z:z+d}
+  };
+  return[
+    {v:[p.A,p.B,p.C,p.D],k:2},
+    {v:[p.a,p.b,p.B,p.A],k:1},
+    {v:[p.b,p.c,p.C,p.B],k:0},
+    {v:[p.c,p.d,p.D,p.C],k:1},
+    {v:[p.d,p.a,p.A,p.D],k:0}
+  ];
+}
+function render(){
+  drawGround();
+  const faces=[];
+  for(const b of buildings){
+    for(const f of boxFaces(b)){
+      const tv=f.v.map(transform),depth=tv.reduce((s,p)=>s+p.z,0)/tv.length+dist;
+      faces.push({depth,v:f.v,k:f.k,t:b.t,h:b.h});
     }
+  }
+  faces.sort((a,b)=>b.depth-a.depth);
+  for(const f of faces){
+    if(f.depth<40)continue;
+    const pts=f.v.map(project);
+    const base=f.k===2?44:(f.k===1?34:28);
+    const violet=Math.floor(16+f.t*18);
+    const light=Math.min(28,Math.floor(f.h/18));
+    const c1=base+light,c2=base+Math.floor(light*.7);
+    let fill;
+    if(f.k===2)fill=`rgb(${c1+violet},${c2+6},${c1+violet+14})`;
+    else if(f.k===1)fill=`rgb(${c1},${c2},${c1+violet})`;
+    else fill=`rgb(${c2},${c2-2},${c1+8})`;
+    poly(pts,fill,"rgba(255,255,255,.035)");
+  }
+  // horizon glow
+  const g=ctx.createRadialGradient(innerWidth/2,innerHeight*.46,20,innerWidth/2,innerHeight*.46,innerWidth*.55);
+  g.addColorStop(0,"rgba(115,75,180,.08)");g.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=g;ctx.fillRect(0,0,innerWidth,innerHeight);
+  anim=requestAnimationFrame(render);
+}
+render();
 
-    function initMap(){
-      if(initDone)return;initDone=true;
-      map=new maplibregl.Map({
-        container:"map",style:baseStyle(),center:HOME.center,zoom:HOME.zoom,pitch:0,bearing:0,
-        minZoom:8.5,maxZoom:19.2,maxPitch:80,maxBounds:BOUNDS,renderWorldCopies:false,
-        attributionControl:true,dragPan:true,dragRotate:true,scrollZoom:true,doubleClickZoom:true,
-        touchZoomRotate:true,touchPitch:true,keyboard:false,cooperativeGestures:false,
-        canvasContextAttributes:{antialias:true}
-      });
-      map.addControl(new maplibregl.NavigationControl({visualizePitch:true,showCompass:true}),"top-right");
-      addMarkersImmediately();
-      map.on("load",()=>{addFree3D();document.getElementById("fatal").classList.remove("show")});
-      map.on("error",e=>console.warn("Map:",e&&e.error?e.error:e));
-    }
+function openDistrict(name){
+  current=name;districtName.textContent=name.toUpperCase();buildDistrict(name);
+  yaw=.55;pitch=.78;dist=1250;targetX=0;targetZ=0;
+  selectScreen.classList.add("hidden");sceneScreen.classList.remove("hidden");
+  gesture.textContent=matchMedia("(pointer:coarse)").matches
+    ?"Tek parmak: etrafa bak • İki parmakla sıkıştır: yakınlaş / uzaklaş"
+    :"Fareyle sürükle: etrafa bak • Tekerlek: yakınlaş / uzaklaş";
+  flash.classList.remove("go");void flash.offsetWidth;flash.classList.add("go");
+  const start=performance.now(),from=1250,to=650;
+  function dive(t){
+    const p=Math.min(1,(t-start)/1800),e=1-Math.pow(1-p,3);
+    dist=from+(to-from)*e;pitch=.58+.20*e;
+    if(p<1)requestAnimationFrame(dive);
+  }
+  requestAnimationFrame(dive);
+}
+document.getElementById("backBtn").addEventListener("click",()=>{
+  sceneScreen.classList.add("hidden");selectScreen.classList.remove("hidden");
+});
 
-    function addMarkersImmediately(){
-      for(const [name,lng,lat] of DISTRICTS){
-        const el=document.createElement("button");el.type="button";
-        el.className="district-label"+(MAJOR.has(name)?" major":"");el.textContent=name;
-        el.addEventListener("click",ev=>{ev.preventDefault();ev.stopPropagation();enterDistrict(name,lng,lat)});
-        markers.push(new maplibregl.Marker({element:el,anchor:"center"}).setLngLat([lng,lat]).addTo(map));
-      }
-    }
+function pointerPos(e){return{x:e.clientX,y:e.clientY}}
+canvas.addEventListener("pointerdown",e=>{drag=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture?.(e.pointerId)});
+canvas.addEventListener("pointermove",e=>{
+  if(!drag)return;
+  const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;
+  yaw+=dx*.006;pitch=Math.max(.30,Math.min(1.15,pitch-dy*.004));
+});
+canvas.addEventListener("pointerup",()=>drag=false);canvas.addEventListener("pointercancel",()=>drag=false);
+canvas.addEventListener("wheel",e=>{e.preventDefault();dist=Math.max(330,Math.min(1450,dist+e.deltaY*.75))},{passive:false});
 
-    function addFree3D(){
-      try{
-        if(map.getSource("ofm3d"))return;
-        map.addSource("ofm3d",{type:"vector",url:"https://tiles.openfreemap.org/planet"});
-        map.addLayer({
-          id:"buildings3d",type:"fill-extrusion",source:"ofm3d","source-layer":"building",minzoom:14,
-          paint:{
-            "fill-extrusion-color":["interpolate",["linear"],["coalesce",["get","render_height"],["get","height"],0],0,"#d8d5dc",30,"#c6becb",80,"#ac9bb9",180,"#896ea1"],
-            "fill-extrusion-height":["interpolate",["linear"],["zoom"],14,0,15,["coalesce",["get","render_height"],["get","height"],8]],
-            "fill-extrusion-base":["coalesce",["get","render_min_height"],["get","min_height"],0],
-            "fill-extrusion-opacity":.95
-          }
-        });
-      }catch(e){console.warn("3D katman eklenemedi",e)}
-    }
+let touches=[];
+canvas.addEventListener("touchstart",e=>{
+  touches=[...e.touches].map(t=>({x:t.clientX,y:t.clientY}));
+  if(touches.length===2)lastPinch=Math.hypot(touches[0].x-touches[1].x,touches[0].y-touches[1].y);
+},{passive:false});
+canvas.addEventListener("touchmove",e=>{
+  e.preventDefault();
+  const now=[...e.touches].map(t=>({x:t.clientX,y:t.clientY}));
+  if(now.length===1&&touches.length===1){
+    yaw+=(now[0].x-touches[0].x)*.007;
+    pitch=Math.max(.30,Math.min(1.15,pitch-(now[0].y-touches[0].y)*.005));
+  }else if(now.length===2){
+    const d=Math.hypot(now[0].x-now[1].x,now[0].y-now[1].y);
+    if(lastPinch)dist=Math.max(330,Math.min(1450,dist-(d-lastPinch)*2.4));
+    lastPinch=d;
+  }
+  touches=now;
+},{passive:false});
+canvas.addEventListener("touchend",e=>{touches=[...e.touches].map(t=>({x:t.clientX,y:t.clientY}));if(touches.length<2)lastPinch=0},{passive:false});
 
-    const hero=document.getElementById("hero"),title=document.getElementById("districtTitle"),nameBox=document.getElementById("districtName");
-    const back=document.getElementById("backBtn"),tip=document.getElementById("tip"),mode=document.getElementById("mode"),gesture=document.getElementById("gesture"),flash=document.getElementById("flash");
-
-    function setMarkers(show){for(const m of markers)m.getElement().style.display=show?"block":"none"}
-
-    function enterDistrict(name,lng,lat){
-      if(!map||in3D)return;in3D=true;setMarkers(false);
-      hero.classList.add("hide");tip.classList.add("hide");back.classList.add("show");title.classList.add("show");
-      nameBox.textContent=name.toUpperCase();mode.textContent="3D GEZİNTİ";
-      gesture.classList.add("show");
-      gesture.textContent=matchMedia("(pointer:coarse)").matches
-        ?"Tek parmak: haritada gez • İki parmak: döndür/eğ • Sıkıştır: yakınlaş/uzaklaş"
-        :"Sol tuş + sürükle: haritada gez • Sağ tuş + sürükle: sağa-sola bak/eğ • Tekerlek: yakınlaş/uzaklaş";
-      flash.classList.remove("go");void flash.offsetWidth;flash.classList.add("go");
-      map.flyTo({center:[lng,lat],zoom:16.4,pitch:68,bearing:22,duration:3400,curve:1.42,speed:.85,essential:true});
-    }
-
-    function goHome(){
-      if(!map)return;in3D=false;title.classList.remove("show");back.classList.remove("show");gesture.classList.remove("show");
-      hero.classList.remove("hide");tip.classList.remove("hide");mode.textContent="İLÇE SEÇ";
-      map.flyTo({center:HOME.center,zoom:HOME.zoom,pitch:0,bearing:0,duration:1700,essential:true});
-      setTimeout(()=>setMarkers(true),850);
-    }
-    back.addEventListener("click",goHome);
-
-    boot();
-  </script>
+// Fail-safe: user should never see a blank 3D screen.
+buildDistrict("İstanbul");
+</script>
 </body>
 </html>
