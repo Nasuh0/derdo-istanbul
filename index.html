@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#040407">
-  <meta name="google-maps-api-key" content="">
   <title>İSTANBUL // 3D</title>
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.12.0/dist/maplibre-gl.css">
   <style>
@@ -88,7 +87,6 @@
   <script src="https://unpkg.com/maplibre-gl@6.12.0/dist/maplibre-gl.js"></script>
   <script>
     const IST = {west:27.78,east:30.05,south:40.72,north:41.55};
-    const GOOGLE_KEY = document.querySelector('meta[name="google-maps-api-key"]').content.trim();
     const intro = document.getElementById('intro');
     const cityWrap = document.getElementById('cityWrap');
     const target = document.getElementById('target');
@@ -117,8 +115,7 @@
       setTimeout(()=>{flash.classList.add('go');intro.classList.add('leave')},420);
       setTimeout(async()=>{
         target.classList.remove('show');
-        if(GOOGLE_KEY){await startGoogle3D(selected)}
-        else{startFallbackDive(selected)}
+        startFallbackDive(selected)
       },850);
     });
 
@@ -153,55 +150,11 @@
     }
 
     function startFallbackDive(p){
-      engineLabel.textContent='3D FALLBACK';
+      engineLabel.textContent='OPEN 3D';
       modeText.textContent='3D';
-      status('Google 3D anahtarı bekleniyor · yedek 3D görünüm');
+      status('Tamamen ücretsiz açık 3D harita');
       map.flyTo({center:[p.lng,p.lat],zoom:17.4,pitch:69,bearing:25,duration:3600,curve:1.5,speed:.8,essential:true});
       setTimeout(()=>busy=false,3600);
-    }
-
-    function loadGoogle(){
-      return new Promise((resolve,reject)=>{
-        if(window.google&&google.maps){resolve();return}
-        const s=document.createElement('script');
-        s.src='https://maps.googleapis.com/maps/api/js?loading=async&key='+encodeURIComponent(GOOGLE_KEY)+'&libraries=maps3d';
-        s.async=true;s.onload=resolve;s.onerror=reject;document.head.appendChild(s);
-      });
-    }
-
-    async function startGoogle3D(p){
-      try{
-        await loadGoogle();
-        const {Map3DElement}=await google.maps.importLibrary('maps3d');
-        const host=document.getElementById('google3d');
-        host.innerHTML='';host.style.display='block';
-        document.getElementById('fallbackMap').style.display='none';
-        const m=new Map3DElement({
-          center:{lat:p.lat,lng:p.lng,altitude:0},
-          range:110000,
-          tilt:0,
-          heading:0,
-          mode:'HYBRID',
-          gestureHandling:'AUTO',
-          bounds:{west:IST.west,east:IST.east,south:IST.south,north:IST.north}
-        });
-        m.style.width='100%';m.style.height='100%';host.append(m);
-        engineLabel.textContent='GOOGLE PHOTOREALISTIC 3D';
-        modeText.textContent='LIVE 3D';
-        status('Foto-gerçekçi İstanbul 3D');
-        setTimeout(()=>{
-          m.flyCameraTo({
-            endCamera:{center:{lat:p.lat,lng:p.lng,altitude:0},range:850,tilt:70,heading:28},
-            durationMillis:4200
-          });
-        },700);
-        setTimeout(()=>busy=false,5000);
-      }catch(err){
-        console.error(err);
-        document.getElementById('google3d').style.display='none';
-        document.getElementById('fallbackMap').style.display='block';
-        startFallbackDive(p);
-      }
     }
 
     initFallback();
