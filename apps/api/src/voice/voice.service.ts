@@ -102,7 +102,7 @@ export class VoiceService {
 
   async disconnectUser(userId: string): Promise<void> {
     const rooms = await this.rooms.listRooms();
-    const revokeTokenTs = BigInt(Math.floor(Date.now() / 1000));
+    const revokeTokenTs = BigInt(Math.floor(Date.now() / 1000) + 1);
 
     await Promise.allSettled(
       rooms
