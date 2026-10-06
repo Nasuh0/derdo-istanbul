@@ -4,6 +4,17 @@ export interface User {
   role: "USER" | "ADMIN";
 }
 
+export interface Attachment {
+  id: string;
+  url: string;
+  mimeType: string;
+  sizeBytes: number;
+  originalName: string;
+  width?: number | null;
+  height?: number | null;
+  createdAt: string;
+}
+
 export interface Room {
   id: string;
   name: string;
@@ -19,6 +30,7 @@ export interface Message {
   content: string;
   createdAt: string;
   author: Pick<User, "id" | "username">;
+  attachments: Attachment[];
 }
 
 export interface DirectMessage {
@@ -28,6 +40,7 @@ export interface DirectMessage {
   content: string;
   createdAt: string;
   author: Pick<User, "id" | "username">;
+  attachments: Attachment[];
 }
 
 export interface DirectConversation {

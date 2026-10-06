@@ -1,10 +1,12 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { Socket } from "socket.io-client";
+import { AdminPanel } from "./components/AdminPanel";
 import { AuthScreen } from "./components/AuthScreen";
 import { api, getAccessToken, logout, refreshSession } from "./lib/api";
 import { connectRealtime } from "./lib/realtime";
 import { useVoice } from "./lib/useVoice";
 import type {
+  Attachment,
   DirectConversation,
   DirectMessage,
   Message,
@@ -39,7 +41,12 @@ export default function App() {
   const [messageText, setMessageText] = useState("");
   const [typing, setTyping] = useState<string[]>([]);
   const [connectionState, setConnectionState] = useState("bağlanıyor");
+  const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [adminOpen, setAdminOpen] = useState(false);
   const socketRef = useRef<Socket | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const voice = useVoice(Boolean(session));
   const activeRef = useRef<ActiveView | null>(null);
 
@@ -147,6 +154,8 @@ export default function App() {
     setActive({ kind: "room", room });
     setTyping([]);
     setDmMessages([]);
+    setPendingAttachments([]);
+    setUploadError("");
     const messages = await api<Message[]>(`/api/rooms/${room.id}/messages?take=80`);
     setRoomMessages(messages);
     socketRef.current?.emit("room:join", { roomId: room.id });
@@ -160,6 +169,8 @@ export default function App() {
     setActive({ kind: "dm", conversation });
     setRoomMessages([]);
     setTyping([]);
+    setPendingAttachments([]);
+    setUploadError("");
     const messages = await api<DirectMessage[]>(
       `/api/dm/${conversation.id}/messages?take=80`
     );
@@ -178,21 +189,58 @@ export default function App() {
   function submitMessage(event: FormEvent) {
     event.preventDefault();
     const content = messageText.trim();
-    if (!content || !active || !socketRef.current) return;
+    if ((!content && pendingAttachments.length === 0) || !active || !socketRef.current) return;
+
+    const attachmentIds = pendingAttachments.map((attachment) => attachment.id);
 
     if (active.kind === "room") {
       socketRef.current.emit("typing:stop", { roomId: active.room.id });
       socketRef.current.emit("message:send", {
         roomId: active.room.id,
-        content
+        content,
+        attachmentIds
       });
     } else {
       socketRef.current.emit("dm:send", {
         conversationId: active.conversation.id,
-        content
+        content,
+        attachmentIds
       });
     }
     setMessageText("");
+    setPendingAttachments([]);
+    setUploadError("");
+  }
+
+  async function uploadImage(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    if (pendingAttachments.length >= 10) {
+      setUploadError("Bir mesaja en fazla 10 görsel ekleyebilirsin.");
+      return;
+    }
+
+    setUploading(true);
+    setUploadError("");
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const attachment = await api<Attachment>("/api/uploads/images", {
+        method: "POST",
+        body: form
+      });
+      setPendingAttachments((items) => [...items, attachment]);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Görsel yüklenemedi");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function removePendingAttachment(id: string) {
+    setPendingAttachments((items) => items.filter((item) => item.id !== id));
   }
 
   function changeMessage(value: string) {
@@ -230,6 +278,15 @@ export default function App() {
       <aside className="server-rail">
         <div className="server-logo">D</div>
         <button className="server-button active">İ</button>
+        {session.user.role === "ADMIN" && (
+          <button
+            className={adminOpen ? "server-button admin active" : "server-button admin"}
+            onClick={() => setAdminOpen(true)}
+            title="Admin paneli"
+          >
+            A
+          </button>
+        )}
         <button className="server-button">+</button>
       </aside>
 
@@ -396,7 +453,26 @@ export default function App() {
                   <strong>{message.author.username}</strong>
                   <time>{timeOf(message.createdAt)}</time>
                 </div>
-                <p>{message.content}</p>
+                {message.content && <p>{message.content}</p>}
+                {message.attachments?.length > 0 && (
+                  <div className="message-attachments">
+                    {message.attachments.map((attachment) => (
+                      <a
+                        href={attachment.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="message-image-link"
+                        key={attachment.id}
+                      >
+                        <img
+                          src={attachment.url}
+                          alt={attachment.originalName}
+                          loading="lazy"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             </article>
           ))}
@@ -406,8 +482,40 @@ export default function App() {
           {typing.length > 0 ? `${typing.join(", ")} yazıyor...` : ""}
         </div>
 
+        {pendingAttachments.length > 0 && (
+          <div className="pending-attachments">
+            {pendingAttachments.map((attachment) => (
+              <div className="pending-attachment" key={attachment.id}>
+                <img src={attachment.url} alt={attachment.originalName} />
+                <button
+                  type="button"
+                  onClick={() => removePendingAttachment(attachment.id)}
+                  aria-label="Görseli kaldır"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        {uploadError && <div className="upload-error">{uploadError}</div>}
+
         <form className="composer" onSubmit={submitMessage}>
-          <button type="button" title="Dosya yükleme sonraki aşamada">＋</button>
+          <input
+            ref={fileInputRef}
+            className="hidden-file-input"
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            onChange={(event) => void uploadImage(event)}
+          />
+          <button
+            type="button"
+            title="Fotoğraf yükle"
+            disabled={!active || uploading}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {uploading ? "…" : "＋"}
+          </button>
           <input
             value={messageText}
             onChange={(event) => changeMessage(event.target.value)}
@@ -419,7 +527,11 @@ export default function App() {
             maxLength={4000}
             disabled={!active}
           />
-          <button className="send-button" type="submit" disabled={!active || !messageText.trim()}>
+          <button
+            className="send-button"
+            type="submit"
+            disabled={!active || (!messageText.trim() && pendingAttachments.length === 0)}
+          >
             Gönder
           </button>
         </form>
@@ -446,6 +558,22 @@ export default function App() {
           </button>
         ))}
       </aside>
+      {adminOpen && session.user.role === "ADMIN" && (
+        <AdminPanel
+          onClose={() => setAdminOpen(false)}
+          onRoomsChanged={(nextRooms) => {
+            setRooms(nextRooms);
+            const current = activeRef.current;
+            if (
+              current?.kind === "room" &&
+              !nextRooms.some((room) => room.id === current.room.id)
+            ) {
+              const general = nextRooms.find((room) => room.slug === "genel") ?? nextRooms[0];
+              if (general) void openRoom(general);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
