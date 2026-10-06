@@ -33,7 +33,7 @@ export function AuthScreen({ onSession }: Props) {
     <main className="auth-page">
       <section className="auth-card">
         <div className="brand-mark">D</div>
-        <h1>Derdo</h1>
+        <h1>Derdo İstanbul</h1>
         <p>Topluluğuna bağlan, yazış ve konuş.</p>
 
         <div className="auth-tabs">
