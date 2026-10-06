@@ -2,7 +2,7 @@ FROM livekit/livekit-server:latest
 
 RUN apk add --no-cache socat tini bind-tools ca-certificates
 
-COPY infra/livekit/railway/entrypoint.sh /railway-entrypoint.sh
+COPY entrypoint.sh /railway-entrypoint.sh
 RUN chmod +x /railway-entrypoint.sh
 
 ENV TINI_SUBREAPER=1 \
