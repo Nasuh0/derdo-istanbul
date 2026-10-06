@@ -21,15 +21,16 @@ export class RedisIoAdapter extends IoAdapter {
       .map((origin) => origin.trim())
       .filter(Boolean);
 
-    const server = super.createIOServer(port, {
-      ...options,
+    const mergedOptions = {
+      ...(options ?? {}),
       cors: {
         origin: origins,
         credentials: true,
         methods: ["GET", "POST"]
       }
-    });
+    } as ServerOptions;
 
+    const server = super.createIOServer(port, mergedOptions);
     server.adapter(createAdapter(this.redis.pubClient, this.redis.subClient));
     return server;
   }
