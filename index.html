@@ -3,11 +3,235 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="color-scheme" content="dark">
-  <title>DERDO İSTANBUL</title>
-  <style>
-    html,body{margin:0;width:100%;height:100%;background:#000}
-  </style>
+  <meta name="theme-color" content="#050807">
+  <meta name="description" content="DERDO İstanbul — teknoloji, yazılım, güvenlik ve dijital kültür topluluğu.">
+  <title>DERDO // ISTANBUL</title>
+  <link rel="stylesheet" href="/derdo.css">
 </head>
-<body></body>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="grid-bg" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="DERDO İstanbul ana sayfa">
+      <span class="brand-mark">D</span>
+      <span class="brand-copy">
+        <strong>DERDO</strong>
+        <small>ISTANBUL // NETWORK</small>
+      </span>
+    </a>
+
+    <nav class="nav" id="nav">
+      <a class="active" href="#forum">Forum</a>
+      <a href="#stream">Akış</a>
+      <a href="#arsiv">Arşiv</a>
+      <a href="#hakkinda">Hakkında</a>
+    </nav>
+
+    <div class="top-actions">
+      <button class="icon-btn search-trigger" type="button" aria-label="Ara" title="Ara">
+        <span>⌕</span><kbd>/</kbd>
+      </button>
+      <button class="btn btn-ghost js-toast" type="button" data-message="Üyelik sistemi yakında aktif olacak.">Giriş</button>
+      <button class="btn btn-solid js-toast" type="button" data-message="Kayıt sistemi yakında aktif olacak.">Ağa Katıl</button>
+      <button class="menu-btn" type="button" aria-label="Menüyü aç" aria-expanded="false">☰</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero shell">
+      <div class="hero-copy">
+        <div class="eyebrow"><i></i> NODE: ISTANBUL / STATUS: ONLINE</div>
+        <h1>Dijital dünyanın<br><span>karanlık arka sokağı.</span></h1>
+        <p>Yazılım, siber güvenlik, donanım ve internet kültürünün kesiştiği bağımsız topluluk. Gürültü yok. Reklam yok. Sadece bilgi ve insanlar.</p>
+        <div class="hero-actions">
+          <a class="btn btn-solid btn-large" href="#forum">Foruma Gir <b>↗</b></a>
+          <button class="btn btn-ghost btn-large js-toast" type="button" data-message="Manifesto bölümü hazırlanıyor.">Manifestoyu Oku</button>
+        </div>
+      </div>
+
+      <aside class="terminal-card" aria-label="Sistem durumu">
+        <div class="terminal-head">
+          <span><i></i><i></i><i></i></span>
+          <em>derdo://system/heartbeat</em>
+          <b id="clock">--:--:--</b>
+        </div>
+        <div class="terminal-body">
+          <p><span class="muted">[SYS]</span> secure channel initialized</p>
+          <p><span class="muted">[NET]</span> edge node connected: <strong>IST</strong></p>
+          <p><span class="muted">[ENC]</span> transport: <strong>TLS</strong></p>
+          <p><span class="muted">[USR]</span> anonymous session accepted</p>
+          <p><span class="muted">[MSG]</span> welcome to <strong>DERDO</strong></p>
+          <p class="prompt"><span>root@derdo:~$</span> <b id="typed"></b><i></i></p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="signal-bar">
+      <div class="shell signal-inner">
+        <span><i class="live-dot"></i> SİSTEM AKTİF</span>
+        <span>01 <b>/</b> BAĞIMSIZ TOPLULUK</span>
+        <span>02 <b>/</b> KAYIT TUTMAYAN TASARIM</span>
+        <span>03 <b>/</b> İSTANBUL'DAN YAYIN</span>
+        <span id="local-date">--.--.----</span>
+      </div>
+    </section>
+
+    <section class="shell layout" id="forum">
+      <div class="content">
+        <div class="section-head">
+          <div>
+            <div class="kicker">/ FORUM INDEX</div>
+            <h2>Kanallar</h2>
+          </div>
+          <button class="small-action js-toast" type="button" data-message="Yeni konu özelliği üyelik sistemiyle birlikte açılacak.">+ Yeni konu</button>
+        </div>
+
+        <div class="forum-list">
+          <article class="forum-row" tabindex="0">
+            <div class="forum-icon">01</div>
+            <div class="forum-main">
+              <div class="forum-title"><h3>Yazılım & Kod</h3><span>DEV</span></div>
+              <p>Web, backend, otomasyon, açık kaynak projeler ve geliştirici sohbetleri.</p>
+              <div class="tags"><b>#javascript</b><b>#python</b><b>#web</b></div>
+            </div>
+            <div class="forum-meta"><strong>1.284</strong><small>KONU</small></div>
+            <div class="forum-meta"><strong>8.7K</strong><small>MESAJ</small></div>
+            <div class="forum-arrow">↗</div>
+          </article>
+
+          <article class="forum-row" tabindex="0">
+            <div class="forum-icon">02</div>
+            <div class="forum-main">
+              <div class="forum-title"><h3>Siber Güvenlik</h3><span>SEC</span></div>
+              <p>Savunma, güvenli yapılandırma, CTF, araştırma ve güvenlik gündemi.</p>
+              <div class="tags"><b>#blue-team</b><b>#ctf</b><b>#privacy</b></div>
+            </div>
+            <div class="forum-meta"><strong>947</strong><small>KONU</small></div>
+            <div class="forum-meta"><strong>6.2K</strong><small>MESAJ</small></div>
+            <div class="forum-arrow">↗</div>
+          </article>
+
+          <article class="forum-row" tabindex="0">
+            <div class="forum-icon">03</div>
+            <div class="forum-main">
+              <div class="forum-title"><h3>Donanım & Sistem</h3><span>SYS</span></div>
+              <p>PC toplama, Linux, ağ, sunucu, elektronik ve performans optimizasyonu.</p>
+              <div class="tags"><b>#linux</b><b>#hardware</b><b>#network</b></div>
+            </div>
+            <div class="forum-meta"><strong>736</strong><small>KONU</small></div>
+            <div class="forum-meta"><strong>4.9K</strong><small>MESAJ</small></div>
+            <div class="forum-arrow">↗</div>
+          </article>
+
+          <article class="forum-row" tabindex="0">
+            <div class="forum-icon">04</div>
+            <div class="forum-main">
+              <div class="forum-title"><h3>Underground Kültür</h3><span>404</span></div>
+              <p>İnternet tarihi, dijital kültür, müzik, görsel sanatlar ve şehir hikâyeleri.</p>
+              <div class="tags"><b>#culture</b><b>#archive</b><b>#istanbul</b></div>
+            </div>
+            <div class="forum-meta"><strong>512</strong><small>KONU</small></div>
+            <div class="forum-meta"><strong>3.1K</strong><small>MESAJ</small></div>
+            <div class="forum-arrow">↗</div>
+          </article>
+        </div>
+
+        <section class="latest" id="stream">
+          <div class="section-head compact">
+            <div>
+              <div class="kicker">/ LIVE FEED</div>
+              <h2>Son tartışmalar</h2>
+            </div>
+            <a href="#stream">Tümünü gör →</a>
+          </div>
+
+          <div class="topic-table">
+            <div class="topic-row topic-header">
+              <span>KONU</span><span>KANAL</span><span>YANIT</span><span>SON AKTİVİTE</span>
+            </div>
+            <div class="topic-row">
+              <div><i class="pin">●</i><strong>Minimal bir Linux sistemi nasıl kurulur?</strong><small>@voidrunner</small></div>
+              <span class="badge">SYS</span><b>42</b><time>2 dk</time>
+            </div>
+            <div class="topic-row">
+              <div><i>›</i><strong>2026 web performans checklist</strong><small>@byte34</small></div>
+              <span class="badge">DEV</span><b>31</b><time>8 dk</time>
+            </div>
+            <div class="topic-row">
+              <div><i>›</i><strong>Ev ağı için güvenli temel yapı</strong><small>@rootless</small></div>
+              <span class="badge">SEC</span><b>18</b><time>17 dk</time>
+            </div>
+            <div class="topic-row">
+              <div><i>›</i><strong>Eski internetten kalan garip arşivler</strong><small>@analogkid</small></div>
+              <span class="badge">404</span><b>66</b><time>24 dk</time>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="sidebar">
+        <section class="side-card profile-card">
+          <div class="side-label">NETWORK STATUS</div>
+          <div class="big-status"><span>ONLINE</span><i></i></div>
+          <div class="stats-grid">
+            <div><strong>2,431</strong><small>ÜYE</small></div>
+            <div><strong>184</strong><small>ONLINE</small></div>
+            <div><strong>3,479</strong><small>KONU</small></div>
+            <div><strong>22.9K</strong><small>MESAJ</small></div>
+          </div>
+        </section>
+
+        <section class="side-card">
+          <div class="side-label">TRENDING / 24H</div>
+          <ol class="trend-list">
+            <li><span>01</span><div><b>self-hosted</b><small>+84 mesaj</small></div><em>↗</em></li>
+            <li><span>02</span><div><b>linux</b><small>+63 mesaj</small></div><em>↗</em></li>
+            <li><span>03</span><div><b>privacy</b><small>+41 mesaj</small></div><em>↗</em></li>
+            <li><span>04</span><div><b>javascript</b><small>+36 mesaj</small></div><em>↗</em></li>
+          </ol>
+        </section>
+
+        <section class="side-card manifesto" id="hakkinda">
+          <div class="side-label">DERDO MANIFEST // 001</div>
+          <blockquote>“Bilgi, paylaşıldıkça değer kazanır. Gürültü arttıkça değil.”</blockquote>
+          <p>İstanbul merkezli, bağımsız ve topluluk odaklı dijital alan.</p>
+        </section>
+      </aside>
+    </section>
+
+    <section class="shell archive-banner" id="arsiv">
+      <div>
+        <span>DERDO ARCHIVE / EST. 2026</span>
+        <h2>İnternet unutmaz.<br>Biz de unutmuyoruz.</h2>
+      </div>
+      <button class="btn btn-outline js-toast" type="button" data-message="Arşiv modülü hazırlanıyor.">ARŞİVİ AÇ <b>↗</b></button>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark small">D</span>
+        <div><strong>DERDO ISTANBUL</strong><small>INDEPENDENT DIGITAL NETWORK</small></div>
+      </div>
+      <p>© 2026 DERDO. İstanbul / TR</p>
+      <div class="footer-links"><a href="#">Kurallar</a><a href="#">Gizlilik</a><a href="#">İletişim</a></div>
+    </div>
+  </footer>
+
+  <div class="search-modal" aria-hidden="true">
+    <div class="search-box">
+      <div class="search-top">
+        <span>⌕</span>
+        <input id="searchInput" type="search" placeholder="Forumda ara..." autocomplete="off">
+        <kbd>ESC</kbd>
+      </div>
+      <div class="search-hint">Arama sistemi hazırlanıyor. <b>/</b> ile aç, <b>ESC</b> ile kapat.</div>
+    </div>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite"></div>
+  <script src="/derdo.js"></script>
+</body>
 </html>
