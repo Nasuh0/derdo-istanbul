@@ -1,10 +1,7 @@
 {
   "build": {
     "builder": "DOCKERFILE",
-    "dockerfilePath": "Dockerfile",
-    "watchPatterns": [
-      "/**"
-    ]
+    "dockerfilePath": "Dockerfile"
   },
   "deploy": {
     "preDeployCommand": [],
