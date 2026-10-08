@@ -1,13 +1,1 @@
-{
-  "name": "derdo-istanbul",
-  "private": true,
-  "scripts": {
-    "dev:api": "pnpm --dir apps/api dev",
-    "dev:web": "pnpm --dir apps/web dev",
-    "build:api": "pnpm --dir apps/api build",
-    "build:web": "pnpm --dir apps/web build",
-    "build": "pnpm build:api && pnpm build:web",
-    "db:up": "docker compose up -d postgres redis",
-    "db:down": "docker compose down"
-  }
-}
+{"name":"derdo-istanbul","version":"1.0.0","private":true,"scripts":{"start":"node server.cjs"}}
