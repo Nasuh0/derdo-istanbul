@@ -4,7 +4,7 @@ const CATEGORIES = [
 {id:'inanc',name:'İnanç & Mimari',tag:'KUBBELERİN ALTINDA',image:'mosque',desc:'Camiler, kiliseler ve çok katmanlı bir kültür.'},
 {id:'antik',name:'Surlar & Sarnıçlar',tag:'YERİN ALTINDA, ZAMANIN ÖTESİNDE',image:'cistern',desc:'Antik başkentin mühendisliği ve savunma mirası.'},
 {id:'semt',name:'Semtler & Sokaklar',tag:'ŞEHRİN RUHU',image:'istanbul',desc:'Bir mahallenin hikâyesi, bir sokağın hafızası.'},
-{id:'carsi',name:'Çarşılar & Hanlar',tag:'YAŞAYAN GELENEK',image:'city',desc:'Ticaretin, zanaatın ve gündelik hayatın izleri.'},
+{id:'carsi',name:'Çarşılar & Hanlar',tag:'YAŞAYAN GELENEK',image:'bazaar',desc:'Ticaretin, zanaatın ve gündelik hayatın izleri.'},
 {id:'bosphorus',name:'Boğaz & Yeşil İstanbul',tag:'İKİ KIYI ARASINDA',image:'bosphorus',desc:'Yalılar, korular, adalar ve kıyı manzaraları.'},
 {id:'sivil',name:'Sivil Mimari & Anıtlar',tag:'TAŞA YAZILAN HİKÂYELER',image:'istanbul',desc:'Kuleler, garlar, meydanlar ve zarif şehir yapıları.'}
 ];

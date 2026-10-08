@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), esc=s=>String(s).replace(/[&<>"']/g,c=>({'
 let saved;try{saved=new Set(JSON.parse(localStorage.getItem('derdo-saved')||'[]').filter(id=>PLACES.some(p=>p.id===id)));}catch{saved=new Set()}
 let category='',onlySaved=false,limit=9,lastFocus=null;
 const cat=id=>CATEGORIES.find(c=>c.id===id),norm=s=>s.toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
-const exactImages={'Topkapı Sarayı':'topkapi','Dolmabahçe Sarayı':'palace','İstanbul Arkeoloji Müzeleri':'museum','Galata Kulesi':'istanbul','Yerebatan Sarnıcı':'cistern','Sultanahmet Camii':'mosque'};
+const exactImages={'Topkapı Sarayı':'topkapi','Dolmabahçe Sarayı':'palace','İstanbul Arkeoloji Müzeleri':'museum','Galata Kulesi':'istanbul','Yerebatan Sarnıcı':'cistern','Sultanahmet Camii':'mosque','Kapalıçarşı':'bazaar'};
 const photo=p=>exactImages[p.name]||cat(p.category).image;
 const caption=p=>exactImages[p.name]?p.name:'Kategori görseli · '+cat(p.category).name;
 function notify(text){$('#toast').textContent=text;$('#toast').classList.add('visible');clearTimeout(notify.timer);notify.timer=setTimeout(()=>$('#toast').classList.remove('visible'),2300)}
